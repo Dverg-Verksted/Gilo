@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 public class HorrorGameTarget : TargetRules
 {
-	public HorrorGameTarget( TargetInfo Target) : base(Target)
+	public HorrorGameTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange( new string[] { "HorrorGame" } );
+		ExtraModuleNames.AddRange(new string[] { "HorrorGame" });
 	}
 }

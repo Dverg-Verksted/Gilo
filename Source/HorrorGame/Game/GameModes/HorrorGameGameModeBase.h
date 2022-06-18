@@ -7,11 +7,10 @@
 #include "HorrorGameGameModeBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class HORRORGAME_API AHorrorGameGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
 };
