@@ -33,6 +33,8 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 		MainCamera->SetupAttachment(MainCameraBoom);
 		MainCamera->bUsePawnControlRotation = false;
 	}
+
+	PlayerSprintComponent = ObjectInitializer.CreateDefaultSubobject<UPlayerSprintComponent>(this, TEXT("PlayerSprintComponent"));
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
@@ -106,6 +108,13 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		if (CrouchAction)
 			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this,
 				&APlayerCharacterBase::CrouchActionHandler);
+
+		if (SprintAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
+			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this,
+				&APlayerCharacterBase::SprintStopHandler);
+		}
 	}
 }
 
@@ -147,7 +156,6 @@ void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValu
 	{
 		PeekState = Magnitude > 0 ? PeekRight : PeekLeft;
 		PeekTimeline.PlayFromStart();
-		UE_LOG(LogTemp, Log, TEXT("Timeline started PeekState %d"), PeekState);
 	}
 	else
 	{
@@ -190,7 +198,6 @@ void APlayerCharacterBase::PeekTimelineFinished()
 		// Если таймлайн вернулся в исходную позицию сбрасываем состояние отклонения
 		PeekState = Default;
 		PeekAlpha = 0.0f;
-		UE_LOG(LogTemp, Log, TEXT("Timeline finished PeekState %d"), PeekState);
 	}
 }
 
@@ -207,4 +214,14 @@ void APlayerCharacterBase::CrouchActionHandler(const FInputActionValue& ActionVa
 			CharMovement->Crouch();
 		}
 	}
+}
+
+void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)
+{
+	PlayerSprintComponent->ToggleSprint(true);
+}
+
+void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValue)
+{
+	PlayerSprintComponent->ToggleSprint(false);
 }
