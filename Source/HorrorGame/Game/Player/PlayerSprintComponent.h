@@ -24,10 +24,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float WalkSpeed;
 
-	/* Макс. скорость ходьбы в приседе */ 
+	/* Макс. скорость ходьбы в приседе */
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float MaxWalkSpeedCrouched;
-	
+
 	/** Скорость бега */
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float RunSpeedMagnitude;
@@ -35,7 +35,7 @@ public:
 	/** Макс. количество выносливости*/
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float MaxStaminaAmount;
-	
+
 	/** Мин. количество выносливости для возобновления бега */
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float MinStaminaAmount;
@@ -78,10 +78,13 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	/* Возвращает TRUE - Если бежим */
+	FORCEINLINE bool IsSprinting() const { return bSprinting; }
+
 	/** Переключение режима бега */
 	UFUNCTION()
 	void ToggleSprint(bool bSprintEnabled);
-	
+
 	/* Обновление значений выносливости */
 	void UpdateStamina(float DeltaTime);
 

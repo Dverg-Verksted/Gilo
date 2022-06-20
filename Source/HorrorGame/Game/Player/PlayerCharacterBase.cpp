@@ -1,8 +1,6 @@
 ﻿// It is owned by the company Dverg Verksted.
 
-
 #include "Game/Player/PlayerCharacterBase.h"
-
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -21,6 +19,15 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	PeekLeftOffset = FVector(0.0f, -15.0f, 60.0f);
 	PeekRightOffset = FVector(0.0f, 15.0f, 60.0f);
 	PeekRotation = 20.0f;
+
+	IdleCameraShake = nullptr;
+	WalkCameraShake = nullptr;
+	RunCameraShake = nullptr;
+	IdleCameraShakeClass = nullptr;
+	WalkCameraShakeClass = nullptr;
+	RunCameraShakeClass = nullptr;
+
+	PlayerController = nullptr;
 
 	MainCameraBoom = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("MainCameraBoom"));
 	if (MainCameraBoom)
@@ -85,36 +92,55 @@ void APlayerCharacterBase::PawnClientRestart()
 {
 	Super::PawnClientRestart();
 
-	if (const auto* PC = Cast<APlayerController>(GetController()))
+	PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
 	{
-		if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->ClearAllMappings();
 			if (DefaultInputContext)
 				Subsystem->AddMappingContext(DefaultInputContext, 0);
 		}
+		StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
 	}
 }
 
 void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() + FVector(0.0f,0.0f, ScaledHalfHeightAdjust);
+	DesiredCameraLocation = CameraDefaultTransform.GetLocation() + FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
 }
 
 void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f,0.0f, ScaledHalfHeightAdjust);
+	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
+}
+
+void APlayerCharacterBase::StartCameraShake(UCameraShakeBase*& CameraShake, const TSubclassOf<UCameraShakeBase> CameraShakeClass) const
+{
+	if (CameraShakeClass)
+	{
+		CameraShake = PlayerController->PlayerCameraManager->StartCameraShake(CameraShakeClass);
+	}
+}
+
+void APlayerCharacterBase::StopCameraShake(UCameraShakeBase* CameraShake)
+{
+	if (CameraShake)
+	{
+		PlayerController->PlayerCameraManager->StopCameraShake(CameraShake);
+	}
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	PeekTimeline.TickTimeline(DeltaTime);
-	
+
 	// Секси плавная интерполяция камеры
-	DesiredCameraLocation = UKismetMathLibrary::VectorSpringInterp(DesiredCameraLocation, CameraDefaultTransform.GetLocation(), CameraInterpSpringState,
+	DesiredCameraLocation = UKismetMathLibrary::VectorSpringInterp(DesiredCameraLocation, CameraDefaultTransform.GetLocation(),
+		CameraInterpSpringState,
 		240.0f, 0.8f, DeltaTime, 6.2f);
 	MainCameraBoom->SetRelativeLocation(DesiredCameraLocation);
 }
@@ -126,11 +152,17 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	if (auto* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		if (MoveAction)
+		{
+			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this,
+				&APlayerCharacterBase::MoveStartActionHandler);
 			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
-
+			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this,
+				&APlayerCharacterBase::MoveStopActionHandler);
+		}
 		if (LookAction)
+		{
 			PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::LookActionHandler);
-
+		}
 		if (PeekAction)
 		{
 			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Started, this, &APlayerCharacterBase::PeekActionHandler);
@@ -139,8 +171,10 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		}
 
 		if (CrouchAction)
+		{
 			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this,
 				&APlayerCharacterBase::CrouchActionHandler);
+		}
 
 		if (SprintAction)
 		{
@@ -149,6 +183,13 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 				&APlayerCharacterBase::SprintStopHandler);
 		}
 	}
+}
+
+void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
+{
+	StopCameraShake(IdleCameraShake);
+	if (!PlayerSprintComponent->IsSprinting())
+		StartCameraShake(WalkCameraShake, WalkCameraShakeClass);
 }
 
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
@@ -170,6 +211,13 @@ void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValu
 
 	AddMovementInput(GetActorForwardVector(), InputAxis.X);
 	AddMovementInput(GetActorRightVector(), InputAxis.Y);
+}
+
+void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue)
+{
+	StopCameraShake(WalkCameraShake);
+	StopCameraShake(RunCameraShake);
+	StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
 }
 
 void APlayerCharacterBase::LookActionHandler(const FInputActionValue& ActionValue)
@@ -257,9 +305,22 @@ void APlayerCharacterBase::CrouchActionHandler(const FInputActionValue& ActionVa
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)
 {
 	PlayerSprintComponent->ToggleSprint(true);
+
+	StopCameraShake(IdleCameraShake);
+	StopCameraShake(WalkCameraShake);
+	StartCameraShake(RunCameraShake, RunCameraShakeClass);
 }
 
 void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValue)
 {
 	PlayerSprintComponent->ToggleSprint(false);
+	StopCameraShake(RunCameraShake);
+	if (GetVelocity().Length() > 10.0f)
+	{
+		StartCameraShake(WalkCameraShake, WalkCameraShakeClass);
+	}
+	else
+	{
+		StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
+	}
 }

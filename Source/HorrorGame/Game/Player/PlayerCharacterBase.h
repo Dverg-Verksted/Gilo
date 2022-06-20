@@ -56,6 +56,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
 	float PeekRotation;
 
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	TSubclassOf<UCameraShakeBase> IdleCameraShakeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	TSubclassOf<UCameraShakeBase> WalkCameraShakeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	TSubclassOf<UCameraShakeBase> RunCameraShakeClass;
+
+	UPROPERTY()
+	UCameraShakeBase* IdleCameraShake;
+
+	UPROPERTY()
+	UCameraShakeBase* WalkCameraShake;
+
+	UPROPERTY()
+	UCameraShakeBase* RunCameraShake;
+
 	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> MoveAction;
 
@@ -95,6 +113,9 @@ protected:
 	UPROPERTY()
 	float BackMoveMagnitude;
 
+	UPROPERTY()
+	APlayerController* PlayerController;
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void BeginPlay() override;
@@ -103,6 +124,9 @@ protected:
 
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+
+	void StartCameraShake(UCameraShakeBase*& CameraShake, const TSubclassOf<UCameraShakeBase> CameraShakeClass) const;
+	FORCEINLINE void StopCameraShake(UCameraShakeBase* CameraShake);
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -116,16 +140,24 @@ public:
 
 private:
 	FVectorSpringState CameraInterpSpringState;
-	
+
 	/** Текущая альфа наклона От 0 до 1 */
 	float PeekAlpha;
 
 	/* Требуемое положение камеры */
 	FVector DesiredCameraLocation;
 
+	/** Обработчик начала ходьбы */
+	UFUNCTION()
+	void MoveStartActionHandler(const FInputActionValue& ActionValue);
+	
 	/** Обработчик ввода ходьбы */
 	UFUNCTION()
 	void MoveActionHandler(const FInputActionValue& ActionValue);
+
+	/** Обработчик завершения ходьбы */
+	UFUNCTION()
+	void MoveStopActionHandler(const FInputActionValue& ActionValue);
 
 	/** Обработчик ввода поворота камеры */
 	UFUNCTION()
