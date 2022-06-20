@@ -19,6 +19,7 @@ void AGameHUD::DrawHUD()
 		{
 			auto* SprintComponent = Cast<UPlayerSprintComponent>(PlayerPawn->GetComponentByClass(UPlayerSprintComponent::StaticClass()));
 			AddFloat(TEXT("Current Stamina:"), SprintComponent->CurrentStamina);
+			AddFloat(TEXT("Current Speed:"), PlayerPawn->GetVelocity().Length());
 		}
 	}
 }

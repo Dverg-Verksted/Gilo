@@ -37,7 +37,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPlayerSprintComponent> PlayerSprintComponent;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags",
 		Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
@@ -75,9 +75,7 @@ protected:
 	TObjectPtr<UInputMappingContext> DefaultInputContext;
 
 	/** Макс. величина замедления перемещения при наклоне */
-	UPROPERTY(EditDefaultsOnly, Category="Input",
-		meta=(ToolTip="Макс. величина замедления перемещения при наклоне", ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"
-		), AdvancedDisplay)
+	UPROPERTY()
 	float MaxPeekSlowDown;
 
 	FTimeline PeekTimeline;
@@ -85,7 +83,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UCurveFloat> PeekCurve;
 
+	/* Текущее состояние наклона вбок */
 	EPlayerPeekState PeekState;
+
+	/* Модификатор скорости движения влево-вправо */
+	UPROPERTY()
+	float StrafeMoveMagnitude;
+
+	/* Модификатор скорости движения назад */
+	UPROPERTY()
+	float BackMoveMagnitude;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
@@ -94,10 +101,8 @@ protected:
 	virtual void PawnClientRestart() override;
 
 public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override

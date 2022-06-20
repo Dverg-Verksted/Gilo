@@ -28,6 +28,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float RunSpeed;
 
+	/** Макс. количество выносливости*/
+	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	float MaxStaminaAmount;
+	
 	/** Мин. количество выносливости для возобновления бега */
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float MinStaminaAmount;
@@ -48,7 +52,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnExhaustedChangedEvent OnExhaustedChanged;
 
-	/** Текущий запас выносливости, от 0 до 1*/
+	/** Текущий запас выносливости */
 	UPROPERTY()
 	float CurrentStamina;
 
@@ -73,6 +77,9 @@ public:
 	/** Переключение режима бега */
 	UFUNCTION()
 	void ToggleSprint(bool bSprintEnabled);
+	
+	/* Обновление значений выносливости */
+	void UpdateStamina(float DeltaTime);
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

@@ -3,6 +3,7 @@
 
 #include "Game/Player/PlayerSprintComponent.h"
 
+#include "PlayerSettings.h"
 #include "GameFramework/Character.h"
 
 UPlayerSprintComponent::UPlayerSprintComponent()
@@ -14,13 +15,15 @@ UPlayerSprintComponent::UPlayerSprintComponent()
 
 	WalkSpeed = 400.0f;
 	RunSpeed = 800.0f;
-	StaminaDrainRate = 0.1f;
-	StaminaRestoreRate = 0.3f;
-	CurrentStamina = 1.0f;
 
 	bSprinting = false;
 	bExhausted = false;
-	MinStaminaAmount = 0.25f;
+
+	MaxStaminaAmount = 15.0f;
+	MinStaminaAmount = 3.75f;
+	StaminaDrainRate = 1.0f;
+	StaminaRestoreRate = 0.3f;
+	CurrentStamina = MaxStaminaAmount;
 }
 
 
@@ -33,6 +36,17 @@ void UPlayerSprintComponent::BeginPlay()
 		OwnerCharacter = Character;
 		CharacterMovement = Character->GetCharacterMovement();
 	}
+
+	if (const UPlayerSettings* PlayerSettings = GetDefault<UPlayerSettings>())
+	{
+		WalkSpeed = PlayerSettings->WalkSpeed;
+		RunSpeed = PlayerSettings->RunSpeed;
+		MaxStaminaAmount = PlayerSettings->MaxStaminaAmount;
+		MinStaminaAmount = PlayerSettings->MinStaminaAmount;
+		StaminaDrainRate = PlayerSettings->StaminaDrainRate;
+		StaminaRestoreRate = PlayerSettings->StaminaRestoreRate;
+		CurrentStamina = MaxStaminaAmount;
+	}
 }
 
 void UPlayerSprintComponent::ToggleSprint(bool bSprintEnabled)
@@ -41,10 +55,8 @@ void UPlayerSprintComponent::ToggleSprint(bool bSprintEnabled)
 }
 
 
-void UPlayerSprintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	bool bNewExhausted = bExhausted;
 	float NewStaminaValue = CurrentStamina;
 	if (ensure(CharacterMovement))
@@ -61,7 +73,7 @@ void UPlayerSprintComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		}
 		else
 		{
-			NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, 1.0f, DeltaTime, StaminaRestoreRate);
+			NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, MaxStaminaAmount, DeltaTime, StaminaRestoreRate);
 			if (bExhausted)
 			{
 				if (NewStaminaValue >= MinStaminaAmount)
@@ -83,4 +95,10 @@ void UPlayerSprintComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		bExhausted = bNewExhausted;
 		OnExhaustedChanged.Broadcast(bExhausted, CurrentStamina);
 	}
+}
+
+void UPlayerSprintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdateStamina(DeltaTime);
 }

@@ -4,12 +4,15 @@
 #include "Game/Player/PlayerCharacterBase.h"
 
 #include "EnhancedInputSubsystems.h"
+#include "PlayerSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
+	StrafeMoveMagnitude = 0.75f;
+	BackMoveMagnitude = 0.6f;
 	MaxPeekSlowDown = 0.3f;
 	PeekAlpha = 0.0f;
 	PeekState = Default;
@@ -62,6 +65,16 @@ void APlayerCharacterBase::BeginPlay()
 
 		PeekTimeline.SetLooping(false);
 		PeekTimeline.SetTimelineLength(PeekCurveMaxTime);
+	}
+
+	if (const UPlayerSettings* PlayerSettings = GetDefault<UPlayerSettings>())
+	{
+		PeekLeftOffset = PlayerSettings->PeekLeftOffset;
+		PeekRightOffset = PlayerSettings->PeekRightOffset;
+		PeekRotation = PlayerSettings->PeekRotation;
+		MaxPeekSlowDown = PlayerSettings->MaxPeekSlowDown;
+		StrafeMoveMagnitude = PlayerSettings->StrafeMoveMagnitude;
+		BackMoveMagnitude = PlayerSettings->BackMoveMagnitude;
 	}
 }
 
@@ -121,12 +134,20 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
 {
 	FVector InputAxis = ActionValue.Get<FVector>();
+	if (InputAxis.X < 0)
+	{
+		// Движение назад
+		InputAxis.X *= BackMoveMagnitude;
+	}
+	InputAxis.Y *= StrafeMoveMagnitude;
+
 	if (PeekAlpha != 0.0f)
 	{
 		const float PeekSlowDownAmount = FMath::Abs(PeekAlpha) * MaxPeekSlowDown;
 		InputAxis.X = InputAxis.X * (1.0f - PeekSlowDownAmount);
 		InputAxis.Y = InputAxis.Y * (1.0f - PeekSlowDownAmount);
 	}
+
 	AddMovementInput(GetActorForwardVector(), InputAxis.X);
 	AddMovementInput(GetActorRightVector(), InputAxis.Y);
 }
