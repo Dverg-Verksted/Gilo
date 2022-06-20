@@ -21,9 +21,14 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Скорость ходьбы")
 	float WalkSpeed;
 
-	/* Скорость бега */ 
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Скорость бега")
-	float RunSpeed;
+	/* Макс. скорость ходьбы в приседе */ 
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Макс. скорость ходьбы присед")
+	float MaxWalkSpeedCrouched;
+	
+	/* Модификатор скорость бега */ 
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Коэф. ускорения бега",
+		meta=(ToolTip="Коэффициент ускорения при беге", ClampMin=1.0f, UIMin=1.0f))
+	float RunSpeedMagnitude;
 	
 	/* Модификатор скорости движения влево-вправо */ 
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Коэф. ходьбы вбок",

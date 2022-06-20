@@ -6,7 +6,8 @@
 UPlayerSettings::UPlayerSettings()
 {
 	WalkSpeed = 400.0f;
-	RunSpeed = 500.0f;
+	MaxWalkSpeedCrouched = 200.0f;
+	RunSpeedMagnitude = 1.25f;
 	StrafeMoveMagnitude = 0.75f;
 	BackMoveMagnitude = 0.6f;
 	MaxPeekSlowDown = 0.3f;

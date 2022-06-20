@@ -14,7 +14,8 @@ UPlayerSprintComponent::UPlayerSprintComponent()
 	CharacterMovement = nullptr;
 
 	WalkSpeed = 400.0f;
-	RunSpeed = 800.0f;
+	MaxWalkSpeedCrouched = 200.0f;
+	RunSpeedMagnitude = 1.25f;
 
 	bSprinting = false;
 	bExhausted = false;
@@ -40,7 +41,8 @@ void UPlayerSprintComponent::BeginPlay()
 	if (const UPlayerSettings* PlayerSettings = GetDefault<UPlayerSettings>())
 	{
 		WalkSpeed = PlayerSettings->WalkSpeed;
-		RunSpeed = PlayerSettings->RunSpeed;
+		MaxWalkSpeedCrouched = PlayerSettings->MaxWalkSpeedCrouched;
+		RunSpeedMagnitude = PlayerSettings->RunSpeedMagnitude;
 		MaxStaminaAmount = PlayerSettings->MaxStaminaAmount;
 		MinStaminaAmount = PlayerSettings->MinStaminaAmount;
 		StaminaDrainRate = PlayerSettings->StaminaDrainRate;
@@ -59,6 +61,7 @@ void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 {
 	bool bNewExhausted = bExhausted;
 	float NewStaminaValue = CurrentStamina;
+
 	if (ensure(CharacterMovement))
 	{
 		if (bSprinting && !bExhausted && CurrentStamina > 0.0f)
@@ -69,7 +72,10 @@ void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 				// Персонаж вымотался
 				bNewExhausted = true;
 			}
-			CharacterMovement->MaxWalkSpeed = NewStaminaValue > 0.0f ? RunSpeed : WalkSpeed;
+			CharacterMovement->MaxWalkSpeed = NewStaminaValue > 0.0f ? WalkSpeed * RunSpeedMagnitude : WalkSpeed;
+			CharacterMovement->MaxWalkSpeedCrouched = NewStaminaValue > 0.0f
+				                                          ? MaxWalkSpeedCrouched * RunSpeedMagnitude
+				                                          : MaxWalkSpeedCrouched;
 		}
 		else
 		{
@@ -83,6 +89,7 @@ void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 				}
 			}
 			CharacterMovement->MaxWalkSpeed = WalkSpeed;
+			CharacterMovement->MaxWalkSpeedCrouched = MaxWalkSpeedCrouched;
 		}
 	}
 	if (NewStaminaValue != CurrentStamina)

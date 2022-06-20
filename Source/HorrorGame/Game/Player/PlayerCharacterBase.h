@@ -10,6 +10,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "PlayerCharacterBase.generated.h"
 
 /** Состояние наклона персонажа */
@@ -100,6 +101,9 @@ protected:
 
 	virtual void PawnClientRestart() override;
 
+	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
@@ -111,8 +115,13 @@ public:
 	}
 
 private:
+	FVectorSpringState CameraInterpSpringState;
+	
 	/** Текущая альфа наклона От 0 до 1 */
 	float PeekAlpha;
+
+	/* Требуемое положение камеры */
+	FVector DesiredCameraLocation;
 
 	/** Обработчик ввода ходьбы */
 	UFUNCTION()

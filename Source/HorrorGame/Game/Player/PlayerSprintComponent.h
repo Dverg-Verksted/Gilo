@@ -24,9 +24,13 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
 	float WalkSpeed;
 
+	/* Макс. скорость ходьбы в приседе */ 
+	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	float MaxWalkSpeedCrouched;
+	
 	/** Скорость бега */
 	UPROPERTY(EditDefaultsOnly, Category="Movement")
-	float RunSpeed;
+	float RunSpeedMagnitude;
 
 	/** Макс. количество выносливости*/
 	UPROPERTY(EditDefaultsOnly, Category="Movement")

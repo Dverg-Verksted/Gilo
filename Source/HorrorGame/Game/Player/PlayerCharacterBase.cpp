@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -38,6 +39,7 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	}
 
 	PlayerSprintComponent = ObjectInitializer.CreateDefaultSubobject<UPlayerSprintComponent>(this, TEXT("PlayerSprintComponent"));
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
@@ -76,6 +78,7 @@ void APlayerCharacterBase::BeginPlay()
 		StrafeMoveMagnitude = PlayerSettings->StrafeMoveMagnitude;
 		BackMoveMagnitude = PlayerSettings->BackMoveMagnitude;
 	}
+	DesiredCameraLocation = CameraDefaultTransform.GetLocation();
 }
 
 void APlayerCharacterBase::PawnClientRestart()
@@ -93,10 +96,27 @@ void APlayerCharacterBase::PawnClientRestart()
 	}
 }
 
+void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	DesiredCameraLocation = CameraDefaultTransform.GetLocation() + FVector(0.0f,0.0f, ScaledHalfHeightAdjust);
+}
+
+void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
+{
+	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
+	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f,0.0f, ScaledHalfHeightAdjust);
+}
+
 void APlayerCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	PeekTimeline.TickTimeline(DeltaTime);
+	
+	// Секси плавная интерполяция камеры
+	DesiredCameraLocation = UKismetMathLibrary::VectorSpringInterp(DesiredCameraLocation, CameraDefaultTransform.GetLocation(), CameraInterpSpringState,
+		240.0f, 0.8f, DeltaTime, 6.2f);
+	MainCameraBoom->SetRelativeLocation(DesiredCameraLocation);
 }
 
 void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -224,16 +244,13 @@ void APlayerCharacterBase::PeekTimelineFinished()
 
 void APlayerCharacterBase::CrouchActionHandler(const FInputActionValue& ActionValue)
 {
-	if (auto* CharMovement = GetCharacterMovement())
+	if (bIsCrouched)
 	{
-		if (CharMovement->IsCrouching())
-		{
-			CharMovement->UnCrouch();
-		}
-		else
-		{
-			CharMovement->Crouch();
-		}
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
 	}
 }
 
