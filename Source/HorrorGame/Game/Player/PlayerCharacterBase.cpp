@@ -42,6 +42,8 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	WalkCameraShakeComponent = ObjectInitializer.CreateDefaultSubobject<UWalkCameraShakeComponent>(this, TEXT("WalkCameraShakeComponent"));
+	InteractionComponent = ObjectInitializer.CreateDefaultSubobject<UInteractionComponent>(this, TEXT("InteractionComponent"));
+	PhysicsHandleComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicsHandleComponent>(this, TEXT("PhysicsHandleComponent"));
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
@@ -86,7 +88,7 @@ void APlayerCharacterBase::BeginPlay()
 void APlayerCharacterBase::PawnClientRestart()
 {
 	Super::PawnClientRestart();
-
+	InteractionComponent->StopTrace();
 	PlayerController = Cast<APlayerController>(GetController());
 	if (PlayerController)
 	{
@@ -95,6 +97,9 @@ void APlayerCharacterBase::PawnClientRestart()
 			Subsystem->ClearAllMappings();
 			if (DefaultInputContext)
 				Subsystem->AddMappingContext(DefaultInputContext, 0);
+			
+			InteractionComponent->OnPlayerReady();
+			InteractionComponent->StartTrace();
 		}
 	}
 }

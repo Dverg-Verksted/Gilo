@@ -10,8 +10,10 @@
 #include "WalkCameraShakeComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/TimelineComponent.h"
+#include "Game/InteractionSystem/InteractionComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "PlayerCharacterBase.generated.h"
 
 /** Состояние наклона персонажа */
@@ -42,6 +44,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UWalkCameraShakeComponent> WalkCameraShakeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInteractionComponent> InteractionComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UPhysicsHandleComponent> PhysicsHandleComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags",
 		Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
@@ -107,7 +115,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void PawnClientRestart() override;
-
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
@@ -133,7 +140,7 @@ private:
 	/** Обработчик начала ходьбы */
 	UFUNCTION()
 	void MoveStartActionHandler(const FInputActionValue& ActionValue);
-	
+
 	/** Обработчик ввода ходьбы */
 	UFUNCTION()
 	void MoveActionHandler(const FInputActionValue& ActionValue);
