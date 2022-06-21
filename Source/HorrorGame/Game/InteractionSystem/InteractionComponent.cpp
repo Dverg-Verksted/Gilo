@@ -2,7 +2,6 @@
 
 
 #include "Game/InteractionSystem/InteractionComponent.h"
-
 #include "EnhancedInputComponent.h"
 #include "InteractiveObject.h"
 #include "GameFramework/Character.h"
@@ -37,6 +36,7 @@ void UInteractionComponent::OnPlayerReady()
 				ensure(UseAction);
 				ensure(GrabAction);
 				ensure(PushGrabbedAction);
+				ensure(GrabbedRotationAction);
 
 				if (UseAction)
 				{
@@ -52,6 +52,11 @@ void UInteractionComponent::OnPlayerReady()
 				{
 					InputComponent->BindAction(PushGrabbedAction, ETriggerEvent::Triggered, this,
 						&UInteractionComponent::PushGrabbedActionHandler);
+				}
+				if (GrabbedRotationAction)
+				{
+					InputComponent->BindAction(GrabbedRotationAction, ETriggerEvent::Triggered, this,
+						&UInteractionComponent::GrabbedRotationActionHandler);
 				}
 			}
 		}
@@ -194,10 +199,10 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		{
 			if (!Comp->IsAnyRigidBodyAwake())
 			{
-				// Если компонент уснул - пинаем этого урода
+				//Если компонент уснул - пинаем этого урода
 				Comp->WakeAllRigidBodies();
 			}
-			PhysicsHandleComponent->SetTargetLocation(TargetLocation);
+			PhysicsHandleComponent->SetTargetLocationAndRotation(TargetLocation, GrabbedDesiredRotation);
 		}
 	}
 }
@@ -236,12 +241,14 @@ void UInteractionComponent::GrabActionHandler(const FInputActionValue& ActionVal
 		if (bCanBeGrabbed)
 		{
 			ComponentToGrab->WakeAllRigidBodies();
-			PhysicsHandleComponent->GrabComponentAtLocation(ComponentToGrab, NAME_None, ComponentToGrab->GetComponentLocation());
+			GrabbedDesiredRotation = ComponentToGrab->GetComponentRotation();
+			PhysicsHandleComponent->GrabComponentAtLocationWithRotation(ComponentToGrab, NAME_None, ComponentToGrab->GetComponentLocation(),
+				GrabbedDesiredRotation);
 			IInteractiveObject::Execute_OnObjectGrabbed(LastInteractiveObject);
 			bGrabbingObject = true;
-			bGrabTriggered = true;
 		}
 	}
+	bGrabTriggered = true;
 }
 
 void UInteractionComponent::ReleaseGrabbedObject()
@@ -279,4 +286,10 @@ void UInteractionComponent::PushGrabbedActionHandler(const FInputActionValue& Ac
 			GrabbedComp->AddImpulse(Impulse, NAME_None);
 		}
 	}
+}
+
+void UInteractionComponent::GrabbedRotationActionHandler(const FInputActionValue& ActionValue)
+{
+	const FVector InputAxis = ActionValue.Get<FVector>();
+	GrabbedDesiredRotation = GrabbedDesiredRotation.Add(InputAxis.Y, InputAxis.X, 0.0f);
 }

@@ -39,7 +39,7 @@ public:
 	/* Сила швыряния схваченного предмета */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	float PushGrabbedForce = 2000.0f;
-	
+
 	/* Типы объектов для трассировки */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
@@ -59,7 +59,11 @@ public:
 	/* Действие швыряния схваченного предмета */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> PushGrabbedAction;
-	
+
+	/* Действие вращение схваченного предмета */
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> GrabbedRotationAction;
+
 protected:
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
@@ -75,6 +79,9 @@ protected:
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandleComponent;
 
 	FTimerHandle TraceTimerHandle;
+
+	/* Требуемая ориентация схваченного предмета */
+	FRotator GrabbedDesiredRotation;
 
 	/* TRUE - Трассировка включена */
 	bool bTracingEnabled;
@@ -117,6 +124,10 @@ protected:
 	/** Обработчик действия швыряния схваченного предмета */
 	UFUNCTION()
 	void PushGrabbedActionHandler(const FInputActionValue& ActionValue);
+
+	/** Обработчик действия вращения схваченного предмета */
+	UFUNCTION()
+	void GrabbedRotationActionHandler(const FInputActionValue& ActionValue);
 
 public:
 	/* Метод инициализации. Вызывается когда персонаж полностью готов к игре */
