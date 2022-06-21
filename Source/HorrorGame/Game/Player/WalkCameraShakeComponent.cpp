@@ -19,7 +19,6 @@ void UWalkCameraShakeComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-
 void UWalkCameraShakeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -42,7 +41,7 @@ void UWalkCameraShakeComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	const FVector Velocity = GetOwner()->GetVelocity();
 	const bool bMoving = Velocity.Size() != 0.f;
 
-	if (!bMoving && CameraMoveState != Idle)
+	if (!bMoving && (CameraMoveState != Idle || !bCameraShakeActive))
 	{
 		CameraMoveState = Idle;
 		StartCameraShake(IdleCameraShakeClass);
