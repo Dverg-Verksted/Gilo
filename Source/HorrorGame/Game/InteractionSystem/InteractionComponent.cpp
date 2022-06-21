@@ -36,6 +36,7 @@ void UInteractionComponent::OnPlayerReady()
 			{
 				ensure(UseAction);
 				ensure(GrabAction);
+				ensure(PushGrabbedAction);
 
 				if (UseAction)
 				{
@@ -46,6 +47,11 @@ void UInteractionComponent::OnPlayerReady()
 					InputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &UInteractionComponent::GrabActionHandler);
 					InputComponent->BindAction(GrabAction, ETriggerEvent::Completed, this, &UInteractionComponent::GrabActionStopHandler);
 					InputComponent->BindAction(GrabAction, ETriggerEvent::Canceled, this, &UInteractionComponent::GrabActionStopHandler);
+				}
+				if (PushGrabbedAction)
+				{
+					InputComponent->BindAction(PushGrabbedAction, ETriggerEvent::Triggered, this,
+						&UInteractionComponent::PushGrabbedActionHandler);
 				}
 			}
 		}
@@ -109,6 +115,12 @@ void UInteractionComponent::Trace(const FVector& Start, const FVector& Stop)
 		if (!HitActor)
 		{
 			// Пропускаем херню
+			continue;
+		}
+
+		if (HitActor->GetVelocity().Length() != 0.0f)
+		{
+			// Игнорируем движущиеся объекты
 			continue;
 		}
 
@@ -213,7 +225,7 @@ void UInteractionComponent::UseActionHandler(const FInputActionValue& ActionValu
 
 void UInteractionComponent::GrabActionHandler(const FInputActionValue& ActionValue)
 {
-	if (bGrabbingObject)
+	if (bGrabbingObject || bGrabTriggered)
 		return;
 
 	if (LastInteractiveObject)
@@ -227,11 +239,12 @@ void UInteractionComponent::GrabActionHandler(const FInputActionValue& ActionVal
 			PhysicsHandleComponent->GrabComponentAtLocation(ComponentToGrab, NAME_None, ComponentToGrab->GetComponentLocation());
 			IInteractiveObject::Execute_OnObjectGrabbed(LastInteractiveObject);
 			bGrabbingObject = true;
+			bGrabTriggered = true;
 		}
 	}
 }
 
-void UInteractionComponent::GrabActionStopHandler(const FInputActionValue& ActionValue)
+void UInteractionComponent::ReleaseGrabbedObject()
 {
 	if (bGrabbingObject)
 	{
@@ -241,5 +254,29 @@ void UInteractionComponent::GrabActionStopHandler(const FInputActionValue& Actio
 			IInteractiveObject::Execute_OnObjectReleased(LastInteractiveObject);
 		}
 		bGrabbingObject = false;
+		ClearLastInteractionObject();
+	}
+}
+
+void UInteractionComponent::GrabActionStopHandler(const FInputActionValue& ActionValue)
+{
+	ReleaseGrabbedObject();
+	bGrabTriggered = false;
+}
+
+void UInteractionComponent::PushGrabbedActionHandler(const FInputActionValue& ActionValue)
+{
+	if (bGrabbingObject)
+	{
+		if (auto* GrabbedComp = PhysicsHandleComponent->GetGrabbedComponent())
+		{
+			// Отпускаем схваченный предмет
+			ReleaseGrabbedObject();
+
+			// Задаем импульс в сторону камеры
+			const FVector Impulse = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().
+			                                          GetForwardVector() * PushGrabbedForce;
+			GrabbedComp->AddImpulse(Impulse, NAME_None);
+		}
 	}
 }

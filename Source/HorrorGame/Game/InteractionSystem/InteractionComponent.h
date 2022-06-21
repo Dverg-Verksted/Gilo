@@ -36,6 +36,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	float GrabDistance = 100.0f;
 
+	/* Сила швыряния схваченного предмета */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	float PushGrabbedForce = 2000.0f;
+	
 	/* Типы объектов для трассировки */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
@@ -52,6 +56,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> GrabAction;
 
+	/* Действие швыряния схваченного предмета */
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> PushGrabbedAction;
+	
 protected:
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController;
@@ -73,6 +81,9 @@ protected:
 
 	/* TRUE - Если схватили и удерживаем объект */
 	bool bGrabbingObject = false;
+
+	/* TRUE - Если уже затриггерилось действие удерживания объекта */
+	bool bGrabTriggered = false;
 
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -97,10 +108,15 @@ protected:
 	/** Обработчик действия хватания предмета */
 	UFUNCTION()
 	void GrabActionHandler(const FInputActionValue& ActionValue);
+	void ReleaseGrabbedObject();
 
 	/** Обработчик завершения действия хватания предмета */
 	UFUNCTION()
 	void GrabActionStopHandler(const FInputActionValue& ActionValue);
+
+	/** Обработчик действия швыряния схваченного предмета */
+	UFUNCTION()
+	void PushGrabbedActionHandler(const FInputActionValue& ActionValue);
 
 public:
 	/* Метод инициализации. Вызывается когда персонаж полностью готов к игре */
