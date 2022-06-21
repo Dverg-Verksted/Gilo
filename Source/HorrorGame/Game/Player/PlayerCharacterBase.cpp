@@ -20,13 +20,6 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	PeekRightOffset = FVector(0.0f, 15.0f, 60.0f);
 	PeekRotation = 20.0f;
 
-	IdleCameraShake = nullptr;
-	WalkCameraShake = nullptr;
-	RunCameraShake = nullptr;
-	IdleCameraShakeClass = nullptr;
-	WalkCameraShakeClass = nullptr;
-	RunCameraShakeClass = nullptr;
-
 	PlayerController = nullptr;
 
 	MainCameraBoom = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("MainCameraBoom"));
@@ -47,6 +40,8 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 
 	PlayerSprintComponent = ObjectInitializer.CreateDefaultSubobject<UPlayerSprintComponent>(this, TEXT("PlayerSprintComponent"));
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	WalkCameraShakeComponent = ObjectInitializer.CreateDefaultSubobject<UWalkCameraShakeComponent>(this, TEXT("WalkCameraShakeComponent"));
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
@@ -101,7 +96,6 @@ void APlayerCharacterBase::PawnClientRestart()
 			if (DefaultInputContext)
 				Subsystem->AddMappingContext(DefaultInputContext, 0);
 		}
-		StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
 	}
 }
 
@@ -115,22 +109,6 @@ void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
-}
-
-void APlayerCharacterBase::StartCameraShake(UCameraShakeBase*& CameraShake, const TSubclassOf<UCameraShakeBase> CameraShakeClass) const
-{
-	if (CameraShakeClass)
-	{
-		CameraShake = PlayerController->PlayerCameraManager->StartCameraShake(CameraShakeClass);
-	}
-}
-
-void APlayerCharacterBase::StopCameraShake(UCameraShakeBase* CameraShake)
-{
-	if (CameraShake)
-	{
-		PlayerController->PlayerCameraManager->StopCameraShake(CameraShake);
-	}
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -187,9 +165,6 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
 {
-	StopCameraShake(IdleCameraShake);
-	if (!PlayerSprintComponent->IsSprinting())
-		StartCameraShake(WalkCameraShake, WalkCameraShakeClass);
 }
 
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
@@ -215,9 +190,6 @@ void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValu
 
 void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue)
 {
-	StopCameraShake(WalkCameraShake);
-	StopCameraShake(RunCameraShake);
-	StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
 }
 
 void APlayerCharacterBase::LookActionHandler(const FInputActionValue& ActionValue)
@@ -305,22 +277,11 @@ void APlayerCharacterBase::CrouchActionHandler(const FInputActionValue& ActionVa
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)
 {
 	PlayerSprintComponent->ToggleSprint(true);
-
-	StopCameraShake(IdleCameraShake);
-	StopCameraShake(WalkCameraShake);
-	StartCameraShake(RunCameraShake, RunCameraShakeClass);
+	WalkCameraShakeComponent->ToggleSprinting(true);
 }
 
 void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValue)
 {
 	PlayerSprintComponent->ToggleSprint(false);
-	StopCameraShake(RunCameraShake);
-	if (GetVelocity().Length() > 10.0f)
-	{
-		StartCameraShake(WalkCameraShake, WalkCameraShakeClass);
-	}
-	else
-	{
-		StartCameraShake(IdleCameraShake, IdleCameraShakeClass);
-	}
+	WalkCameraShakeComponent->ToggleSprinting(false);
 }

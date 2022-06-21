@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameplayTagAssetInterface.h"
 #include "PlayerSprintComponent.h"
+#include "WalkCameraShakeComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -39,6 +40,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPlayerSprintComponent> PlayerSprintComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UWalkCameraShakeComponent> WalkCameraShakeComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags",
 		Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
@@ -55,24 +59,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
 	float PeekRotation;
-
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
-	TSubclassOf<UCameraShakeBase> IdleCameraShakeClass;
-
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
-	TSubclassOf<UCameraShakeBase> WalkCameraShakeClass;
-
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
-	TSubclassOf<UCameraShakeBase> RunCameraShakeClass;
-
-	UPROPERTY()
-	UCameraShakeBase* IdleCameraShake;
-
-	UPROPERTY()
-	UCameraShakeBase* WalkCameraShake;
-
-	UPROPERTY()
-	UCameraShakeBase* RunCameraShake;
 
 	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> MoveAction;
@@ -124,9 +110,6 @@ protected:
 
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-
-	void StartCameraShake(UCameraShakeBase*& CameraShake, const TSubclassOf<UCameraShakeBase> CameraShakeClass) const;
-	FORCEINLINE void StopCameraShake(UCameraShakeBase* CameraShake);
 
 public:
 	virtual void Tick(float DeltaTime) override;
