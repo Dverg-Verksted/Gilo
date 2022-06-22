@@ -10,7 +10,8 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"DeveloperSettings"
+				"DeveloperSettings",
+				"DataRegistry"
 			]
 		}
 	],
@@ -167,6 +168,10 @@
 		},
 		{
 			"Name": "EnhancedInput",
+			"Enabled": true
+		},
+		{
+			"Name": "DataRegistry",
 			"Enabled": true
 		}
 	]

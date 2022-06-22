@@ -79,4 +79,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName="Восстановление выносливости",
 		meta=(ToolTip="Темп восстановления выносливости"))
 	float StaminaRestoreRate;
+
+	static FORCEINLINE UPlayerSettings* Get()
+	{
+		UPlayerSettings* Settings = GetMutableDefault<UPlayerSettings>();
+		check(Settings);
+		return Settings;
+	}
 };

@@ -21,6 +21,10 @@ class HORRORGAME_API IInteractiveObject
 	GENERATED_BODY()
 
 public:
+	/* Инициализация интерактивного объекта из DataAsset-а */
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="ObjectInteraction")
+	void InitFromAsset(UPrimaryDataAsset* SourceAsset);
+	
 	/* Наведение курсора на интерактивный объект */
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="ObjectInteraction")
 	void OnHoverBegin(APlayerController* PlayerController, const FHitResult& Hit);
