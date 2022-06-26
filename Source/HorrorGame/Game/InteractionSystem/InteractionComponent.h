@@ -20,6 +20,10 @@ public:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionObjectChangedEvent, AActor*, Actor, FHitResult, Hit);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHoverBeginEvent, AActor*, Actor, FHitResult, Hit);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverEndEvent, AActor*, Actor);
+
 	/* Интервал таймера трассировки */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	float TraceTimerInterval = 0.1f;
@@ -48,6 +52,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInteractionObjectChangedEvent OnInteractionObjectChanged;
 
+	/* Навели прицел на интерактивный объект */
+	UPROPERTY(BlueprintAssignable)
+	FOnHoverBeginEvent OnHoverBegin;
+
+	/* Убрали прицел с интерактивного объекта */
+	UPROPERTY(BlueprintAssignable)
+	FOnHoverEndEvent OnHoverEnd;
+	
 	/* Действие использования предмета */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> UseAction;

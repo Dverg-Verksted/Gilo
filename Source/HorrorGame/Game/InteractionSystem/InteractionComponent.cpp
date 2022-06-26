@@ -168,6 +168,7 @@ void UInteractionComponent::SelectNewInteractionObject(const FHitResult& Hit)
 	{
 		LastInteractiveObject = NewInteractiveActor;
 		IInteractiveObject::Execute_OnHoverBegin(NewInteractiveActor, PlayerController, Hit);
+		OnHoverBegin.Broadcast(NewInteractiveActor, Hit);
 		OnInteractionObjectChanged.Broadcast(LastInteractiveObject, Hit);
 	}
 }
@@ -177,6 +178,7 @@ void UInteractionComponent::ClearLastInteractionObject()
 	if (LastInteractiveObject)
 	{
 		IInteractiveObject::Execute_OnHoverEnd(LastInteractiveObject, PlayerController);
+		OnHoverEnd.Broadcast(LastInteractiveObject);
 	}
 	LastInteractiveObject = nullptr;
 }

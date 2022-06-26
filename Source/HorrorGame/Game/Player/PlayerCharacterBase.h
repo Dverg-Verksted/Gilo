@@ -57,9 +57,6 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
-	FTransform CameraDefaultTransform;
-
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
 	FVector PeekLeftOffset;
 
 	UPROPERTY(EditDefaultsOnly, Category="Camera")
@@ -129,13 +126,19 @@ public:
 	}
 
 private:
+	/* Трансформ камеры по-умолчанию */
+	FTransform CameraDefaultTransform;
+	
 	FVectorSpringState CameraInterpSpringState;
 
 	/** Текущая альфа наклона От 0 до 1 */
 	float PeekAlpha;
 
-	/* Требуемое положение камеры */
-	FVector DesiredCameraLocation;
+	/* Текущее значение смещения камеры в приседе */
+	FVector CameraCrouchOffset;
+
+	/* Текущее значение смещения камеры в наклоне */
+	FVector CameraPeekOffset;
 
 	/** Обработчик начала ходьбы */
 	UFUNCTION()

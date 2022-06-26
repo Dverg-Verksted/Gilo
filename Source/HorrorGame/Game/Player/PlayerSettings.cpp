@@ -12,8 +12,8 @@ UPlayerSettings::UPlayerSettings()
 	BackMoveMagnitude = 0.6f;
 	MaxPeekSlowDown = 0.3f;
 
-	PeekLeftOffset = FVector(0.0f, -15.0f, 60.0f);
-	PeekRightOffset = FVector(0.0f, 15.0f, 60.0f);
+	PeekLeftOffset = FVector(0.0f, -15.0f, -12.0f);
+	PeekRightOffset = FVector(0.0f, 15.0f, -12.0f);
 	PeekRotation = 20.0f;
 
 	MaxStaminaAmount = 15.0f;

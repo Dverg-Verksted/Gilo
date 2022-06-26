@@ -31,7 +31,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> DoorMeshComponent;
-	
+
 	/* Дата Ассет текущей двери */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Door")
 	FDataRegistryId DoorID;
@@ -47,8 +47,7 @@ public:
 	/* Коэффициент открытия */
 	UPROPERTY(EditDefaultsOnly, Category="Door")
 	float DragMagnitude = 10.0f;
-
-
+	
 	/* Действие открытия двери */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> DoorDragAction;

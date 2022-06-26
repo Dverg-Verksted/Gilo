@@ -16,9 +16,12 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	PeekAlpha = 0.0f;
 	PeekState = Default;
 
-	PeekLeftOffset = FVector(0.0f, -15.0f, 60.0f);
-	PeekRightOffset = FVector(0.0f, 15.0f, 60.0f);
+	PeekLeftOffset = FVector(0.0f, -15.0f, -12.0f);
+	PeekRightOffset = FVector(0.0f, 15.0f, -12.0f);
 	PeekRotation = 20.0f;
+
+	CameraCrouchOffset = FVector::ZeroVector;
+	CameraPeekOffset = FVector::ZeroVector;
 
 	PlayerController = nullptr;
 
@@ -49,7 +52,6 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	MainCameraBoom->SetRelativeTransform(CameraDefaultTransform);
 }
 
 void APlayerCharacterBase::BeginPlay()
@@ -82,7 +84,7 @@ void APlayerCharacterBase::BeginPlay()
 		StrafeMoveMagnitude = PlayerSettings->StrafeMoveMagnitude;
 		BackMoveMagnitude = PlayerSettings->BackMoveMagnitude;
 	}
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation();
+	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
 
 void APlayerCharacterBase::PawnClientRestart()
@@ -97,7 +99,7 @@ void APlayerCharacterBase::PawnClientRestart()
 			Subsystem->ClearAllMappings();
 			if (DefaultInputContext)
 				Subsystem->AddMappingContext(DefaultInputContext, 0);
-			
+
 			InteractionComponent->OnPlayerReady();
 			InteractionComponent->StartTrace();
 		}
@@ -107,13 +109,13 @@ void APlayerCharacterBase::PawnClientRestart()
 void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() + FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
+	CameraCrouchOffset = FVector(0.0f, 0.0f, -ScaledHalfHeightAdjust);
 }
 
 void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
+	CameraCrouchOffset = FVector::ZeroVector;
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -121,11 +123,15 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	PeekTimeline.TickTimeline(DeltaTime);
 
+	FVector DesiredCameraLocation = CameraDefaultTransform.GetLocation();
+	DesiredCameraLocation += CameraCrouchOffset;
+	DesiredCameraLocation += CameraPeekOffset;
+
 	// Секси плавная интерполяция камеры
-	DesiredCameraLocation = UKismetMathLibrary::VectorSpringInterp(DesiredCameraLocation, CameraDefaultTransform.GetLocation(),
+	const FVector ResultCameraLocation = UKismetMathLibrary::VectorSpringInterp(MainCameraBoom->GetRelativeLocation(), DesiredCameraLocation,
 		CameraInterpSpringState,
-		240.0f, 0.8f, DeltaTime, 6.2f);
-	MainCameraBoom->SetRelativeLocation(DesiredCameraLocation);
+		800.0f, 0.85f, DeltaTime, 6.2f);
+	MainCameraBoom->SetRelativeLocation(ResultCameraLocation);
 }
 
 void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -243,11 +249,10 @@ void APlayerCharacterBase::PeekTimelineProgress(float Value)
 
 	PeekAlpha = Value;
 
-	const FVector PeekLocation = PeekState == PeekRight ? PeekRightOffset : PeekLeftOffset;
-	const FVector TargetLocation = PeekLocation;
-	const FVector StartLocation = CameraDefaultTransform.GetLocation();
-	const FVector CameraLocation = FMath::Lerp(StartLocation, TargetLocation, Value);
-	MainCameraBoom->SetRelativeLocation(CameraLocation);
+	const FVector PeekOffset = PeekState == PeekRight ? PeekRightOffset : PeekLeftOffset;
+	const FVector CameraLocation = FMath::Lerp(FVector::ZeroVector, PeekOffset, Value);
+
+	CameraPeekOffset = CameraLocation;
 
 	if (auto* PC = Cast<APlayerController>(GetController()))
 	{
