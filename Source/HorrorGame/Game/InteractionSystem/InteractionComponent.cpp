@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InteractiveObject.h"
@@ -169,6 +168,18 @@ void UInteractionComponent::SelectNewInteractionObject(const FHitResult& Hit)
 		LastInteractiveObject = NewInteractiveActor;
 		IInteractiveObject::Execute_OnHoverBegin(NewInteractiveActor, PlayerController, Hit);
 		OnHoverBegin.Broadcast(NewInteractiveActor, Hit);
+
+		// Уведомляем дочерние компоненты актора, реализующий интерфейс InteractiveObject
+		TArray<UActorComponent*> InteractionListeners;
+		NewInteractiveActor->GetComponents(InteractionListeners, false);
+		for (auto* Comp : InteractionListeners)
+		{
+			if (Comp->GetClass()->ImplementsInterface(UInteractiveObject::StaticClass()))
+			{
+				IInteractiveObject::Execute_OnHoverBegin(Comp, PlayerController, Hit);
+			}
+		}
+
 		OnInteractionObjectChanged.Broadcast(LastInteractiveObject, Hit);
 	}
 }
@@ -179,6 +190,17 @@ void UInteractionComponent::ClearLastInteractionObject()
 	{
 		IInteractiveObject::Execute_OnHoverEnd(LastInteractiveObject, PlayerController);
 		OnHoverEnd.Broadcast(LastInteractiveObject);
+
+		// Уведомляем дочерние компоненты актора, реализующий интерфейс InteractiveObject
+		TArray<UActorComponent*> InteractionListeners;
+		LastInteractiveObject->GetComponents(InteractionListeners, false);
+		for (auto* Comp : InteractionListeners)
+		{
+			if (Comp->GetClass()->ImplementsInterface(UInteractiveObject::StaticClass()))
+			{
+				IInteractiveObject::Execute_OnHoverEnd(Comp, PlayerController);
+			}
+		}
 	}
 	LastInteractiveObject = nullptr;
 }
