@@ -17,7 +17,7 @@ class HORRORGAME_API UDoorDataAsset : public UAutoDiscoveryAsset
 public:
 	UDoorDataAsset();
 
-	/* Минимальный угол открытия двери */
+	/* Модель двери */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName="Модель", AssetRegistrySearchable,
 		meta=(ToolTip="Модель собственно двери", AssetBundles="meshes"))
 	TSoftObjectPtr<UStaticMesh> DoorMesh;
@@ -32,7 +32,7 @@ public:
 
 	/* Тяжесть открытия */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName="Тяжесть открытия",
-		meta=(ToolTip="Тяжесть открытия. Чем больше - тем тяжелее"))
+		meta=(ToolTip="Тяжесть открытия. Чем меньше - тем тяжелее"))
 	float DragMagnitude = 10.0f;
 
 protected:
