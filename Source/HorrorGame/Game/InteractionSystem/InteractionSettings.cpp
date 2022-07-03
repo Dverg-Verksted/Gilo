@@ -5,4 +5,6 @@
 
 UInteractionSettings::UInteractionSettings()
 {
+	TraceDistance = 100.0f;
+	TraceRadius = 10.0f;
 }

@@ -18,18 +18,28 @@ class HORRORGAME_API UInteractionSettings : public UDeveloperSettings
 public:
 	UInteractionSettings();
 
-	/* Типы объектов для трассировки */ 
+	/* Дистанция трассировки */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Дистанция",
+		meta=(ToolTip="Дистанция трассировки", ClampMin=10.0f, UIMin=10.0f))
+	float TraceDistance;
+
+	/* Радиус трассировки */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Радиус",
+		meta=(ToolTip="Радиус сферы трассировки", ClampMin=0.5f, UIMin=0.5f))
+	float TraceRadius;
+
+	/* Типы объектов для трассировки */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Типы объектов")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 
-	/* Профиль коллизий интерактивного объекта */ 
+	/* Профиль коллизий интерактивного объекта */
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Профиль коллизий")
 	FName CollisionProfile;
-	
-	static FORCEINLINE UInteractionSettings* Get()
+
+	static FORCEINLINE const UInteractionSettings* Get()
 	{
-		UInteractionSettings* Settings = GetMutableDefault<UInteractionSettings>();
-		check(Settings);
+		const UInteractionSettings* Settings = GetDefault<UInteractionSettings>();
+		ensure(Settings);
 		return Settings;
 	}
 };

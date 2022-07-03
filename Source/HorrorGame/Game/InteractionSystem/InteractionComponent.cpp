@@ -2,6 +2,7 @@
 
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "EnhancedInputComponent.h"
+#include "InteractionSettings.h"
 #include "InteractiveObject.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -17,6 +18,7 @@ UInteractionComponent::UInteractionComponent()
 	PlayerPawn = nullptr;
 	LastInteractiveObject = nullptr;
 	PhysicsHandleComponent = nullptr;
+	LockTargetActor = nullptr;
 }
 
 
@@ -70,7 +72,16 @@ void UInteractionComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(TraceTimerHandle, this, &UInteractionComponent::OnTraceTimerTick, TraceTimerInterval, true);
+	if (auto* Settings = UInteractionSettings::Get())
+	{
+		TraceDistance = Settings->TraceDistance;
+		TraceRadius = Settings->TraceRadius;
+	}
+
+	if (TraceDistance > 0.0f && TraceRadius > 0.0f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TraceTimerHandle, this, &UInteractionComponent::OnTraceTimerTick, TraceTimerInterval, true);
+	}
 }
 
 void UInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -81,7 +92,7 @@ void UInteractionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void UInteractionComponent::OnTraceTimerTick()
 {
-	if (bTracingEnabled && !bGrabbingObject)
+	if (bTracingEnabled && !bGrabbingObject && !bIsLocked)
 	{
 		const FVector Start = PlayerController->PlayerCameraManager->GetCameraLocation();
 		const FVector Forward = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().
@@ -154,24 +165,24 @@ void UInteractionComponent::Trace(const FVector& Start, const FVector& Stop)
 	{
 		if (ResultActor != LastInteractiveObject)
 		{
-			SelectNewInteractionObject(ResultHit);
+			SelectNewInteractionObject(ResultHit, ResultActor);
 		}
 	}
 }
 
-void UInteractionComponent::SelectNewInteractionObject(const FHitResult& Hit)
+void UInteractionComponent::SelectNewInteractionObject(const FHitResult& Hit, AActor* Actor)
 {
 	ClearLastInteractionObject();
 
-	if (AActor* NewInteractiveActor = Hit.GetActor())
+	if (Actor)
 	{
-		LastInteractiveObject = NewInteractiveActor;
-		IInteractiveObject::Execute_OnHoverBegin(NewInteractiveActor, PlayerController, Hit);
-		OnHoverBegin.Broadcast(NewInteractiveActor, Hit);
+		LastInteractiveObject = Actor;
+		IInteractiveObject::Execute_OnHoverBegin(Actor, PlayerController, Hit);
+		OnHoverBegin.Broadcast(Actor, Hit);
 
 		// Уведомляем дочерние компоненты актора, реализующий интерфейс InteractiveObject
 		TArray<UActorComponent*> InteractionListeners;
-		NewInteractiveActor->GetComponents(InteractionListeners, false);
+		Actor->GetComponents(InteractionListeners, false);
 		for (auto* Comp : InteractionListeners)
 		{
 			if (Comp->GetClass()->ImplementsInterface(UInteractiveObject::StaticClass()))
@@ -242,6 +253,48 @@ void UInteractionComponent::StartTrace()
 void UInteractionComponent::StopTrace()
 {
 	bTracingEnabled = false;
+}
+
+void UInteractionComponent::LockOnTarget(AActor* Actor)
+{
+	if (IsValid(LockTargetActor))
+		ClearTargetLock();
+
+	if (IsValid(Actor))
+	{
+		bIsLocked = true;
+		if (LastInteractiveObject != Actor)
+		{
+			SelectNewInteractionObject(FHitResult(), Actor);
+		}
+		LockTargetActor = Actor;
+		OnInteractionTargetLock.Broadcast(LockTargetActor);
+	}
+}
+
+void UInteractionComponent::ClearTargetLock()
+{
+	if (bGrabbingObject)
+		return;
+
+	if (LockTargetActor)
+		OnInteractionTargetUnlock.Broadcast(LockTargetActor);
+
+	LockTargetActor = nullptr;
+	bIsLocked = false;
+	ClearLastInteractionObject();
+}
+
+UInteractionComponent* UInteractionComponent::Get(const APlayerController* PlayerController)
+{
+	if (PlayerController)
+	{
+		if (const auto* Pawn = PlayerController->GetPawn())
+		{
+			return Cast<UInteractionComponent>(Pawn->GetComponentByClass(StaticClass()));
+		}
+	}
+	return nullptr;
 }
 
 void UInteractionComponent::UseActionHandler(const FInputActionValue& ActionValue)

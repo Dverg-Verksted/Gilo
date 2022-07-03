@@ -46,6 +46,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> DrawerDragAction;
 
+	/* Продолжительное действие */
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> GrabObjectAction;
+	
 	/* Контекст действий с ящиком */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputMappingContext> DrawerInputContext;
@@ -71,7 +75,10 @@ protected:
 	void DrawerDragActionHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
-	void DrawerDragStopActionHandler(const FInputActionValue& ActionValue);
+	void GrabObjectTriggeredHandler(const FInputActionValue& ActionValue);
+
+	UFUNCTION()
+	void GrabObjectCompletedHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
 	void OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID);

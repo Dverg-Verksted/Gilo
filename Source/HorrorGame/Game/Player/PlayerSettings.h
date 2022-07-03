@@ -80,10 +80,10 @@ public:
 		meta=(ToolTip="Темп восстановления выносливости"))
 	float StaminaRestoreRate;
 
-	static FORCEINLINE UPlayerSettings* Get()
+	static FORCEINLINE const UPlayerSettings* Get()
 	{
-		UPlayerSettings* Settings = GetMutableDefault<UPlayerSettings>();
-		check(Settings);
+		const UPlayerSettings* Settings = GetDefault<UPlayerSettings>();
+		ensure(Settings);
 		return Settings;
 	}
 };

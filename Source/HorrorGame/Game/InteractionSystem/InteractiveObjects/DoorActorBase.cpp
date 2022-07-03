@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/AssetManager.h"
 #include "Game/Common/AssetMetaRegistrySource.h"
+#include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DoorDataAsset.h"
 
@@ -35,22 +36,42 @@ void ADoorActorBase::BeginPlay()
 void ADoorActorBase::ReloadDoorAsset()
 {
 	const auto* RegistrySystem = UDataRegistrySubsystem::Get();
-	if (IsValid(RegistrySystem))
+	if (!IsValid(RegistrySystem))
+		return;
+
+	const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DoorID.RegistryType);
+	if (!Registry)
+		return;
+
+	if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DoorID))
 	{
-		if (const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DoorID.RegistryType))
+		if (UAssetManager* Manager = UAssetManager::GetIfValid())
 		{
-			if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DoorID))
-			{
-				if (UAssetManager* Manager = UAssetManager::GetIfValid())
-				{
-					TArray<FName> Bundles;
-					Bundles.Add(FName("meshes"));
-					const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADoorActorBase::OnDoorAssetLoaded,
-						Asset->AssetID);
-					Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
-				}
-			}
+			TArray<FName> Bundles;
+			Bundles.Add(FName("meshes"));
+			const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADoorActorBase::OnDoorAssetLoaded,
+				Asset->AssetID);
+			Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
 		}
+	}
+}
+
+void ADoorActorBase::GrabObjectTriggeredHandler(const FInputActionValue& ActionValue)
+{
+	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
+	{
+		if (Comp->GetLockedActor() != this)
+		{
+			Comp->LockOnTarget(this);
+		}
+	}
+}
+
+void ADoorActorBase::GrabObjectCompletedHandler(const FInputActionValue& ActionValue)
+{
+	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
+	{
+		Comp->ClearTargetLock();
 	}
 }
 
@@ -82,20 +103,16 @@ void ADoorActorBase::OnHoverBegin_Implementation(APlayerController* PlayerContro
 	EnableInput(PlayerController);
 	DragPlayerController = PlayerController;
 
-	if (!bInputBinded)
+	if (!bInputBinded && DoorDragAction && GrabObjectAction)
 	{
 		// Привязка к вводу
 		if (auto* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			ensure(DoorDragAction);
-
-			if (DoorDragAction)
-			{
-				EIC->BindAction(DoorDragAction, ETriggerEvent::Triggered, this, &ADoorActorBase::DoorDragActionHandler);
-				EIC->BindAction(DoorDragAction, ETriggerEvent::Completed, this, &ADoorActorBase::DoorDragStopActionHandler);
-				EIC->BindAction(DoorDragAction, ETriggerEvent::Canceled, this, &ADoorActorBase::DoorDragStopActionHandler);
-				bInputBinded = true;
-			}
+			EIC->BindAction(DoorDragAction, ETriggerEvent::Triggered, this, &ADoorActorBase::DoorDragActionHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Triggered, this, &ADoorActorBase::GrabObjectTriggeredHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADoorActorBase::GrabObjectCompletedHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADoorActorBase::GrabObjectCompletedHandler);
+			bInputBinded = true;
 		}
 	}
 
@@ -146,10 +163,6 @@ void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
 	DoorRootComponent->SetRelativeRotation(NewRotation, true);
 }
 
-void ADoorActorBase::DoorDragStopActionHandler(const FInputActionValue& ActionValue)
-{
-}
-
 void ADoorActorBase::OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID)
 {
 	if (const auto* Manager = UAssetManager::GetIfValid())
@@ -164,8 +177,8 @@ void ADoorActorBase::OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID)
 void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADoorActorBase,
-		    DoorID))
+	if (PropertyChangedEvent.MemberProperty &&
+	    PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADoorActorBase, DoorID))
 	{
 		ReloadDoorAsset();
 	}

@@ -47,10 +47,14 @@ public:
 	/* Коэффициент открытия */
 	UPROPERTY(EditDefaultsOnly, Category="Door")
 	float DragMagnitude = 10.0f;
-	
+
 	/* Действие открытия двери */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> DoorDragAction;
+
+	/* Продолжительное действие */
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> GrabObjectAction;
 
 	/* Контекст действий с дверью */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
@@ -75,10 +79,13 @@ protected:
 	void ReloadDoorAsset();
 
 	UFUNCTION()
-	void DoorDragActionHandler(const FInputActionValue& ActionValue);
+	void GrabObjectTriggeredHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
-	void DoorDragStopActionHandler(const FInputActionValue& ActionValue);
+	void GrabObjectCompletedHandler(const FInputActionValue& ActionValue);
+
+	UFUNCTION()
+	void DoorDragActionHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
 	void OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID);

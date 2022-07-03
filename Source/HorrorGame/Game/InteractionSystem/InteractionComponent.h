@@ -24,6 +24,10 @@ public:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverEndEvent, AActor*, Actor);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionTargetLockEvent, AActor*, LockTarget);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionTargetUnlockEvent, AActor*, UnlockedTarget);
+
 	/* Интервал таймера трассировки */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
 	float TraceTimerInterval = 0.1f;
@@ -49,17 +53,25 @@ public:
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 
 	/* Изменился текущий интерактивный объект */
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
 	FOnInteractionObjectChangedEvent OnInteractionObjectChanged;
 
 	/* Навели прицел на интерактивный объект */
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
 	FOnHoverBeginEvent OnHoverBegin;
 
 	/* Убрали прицел с интерактивного объекта */
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
 	FOnHoverEndEvent OnHoverEnd;
-	
+
+	/* Трассировщик заблокирован на акторе */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionTargetLockEvent OnInteractionTargetLock;
+
+	/* Трассировщик разблокирован */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionTargetUnlockEvent OnInteractionTargetUnlock;
+
 	/* Действие использования предмета */
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> UseAction;
@@ -104,6 +116,13 @@ protected:
 	/* TRUE - Если уже затриггерилось действие удерживания объекта */
 	bool bGrabTriggered = false;
 
+	/* TRUE - Если трассировщик заблокирован на объекте */
+	bool bIsLocked = false;
+
+	/* Актор, на котором заблокирован трассировщик */
+	UPROPERTY()
+	TObjectPtr<AActor> LockTargetActor;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -115,7 +134,7 @@ protected:
 	void OnTraceTimerTick();
 
 	/* Выбор нового интерактивного объекта */
-	void SelectNewInteractionObject(const FHitResult& Hit);
+	void SelectNewInteractionObject(const FHitResult& Hit, AActor* Actor);
 
 	/* Очистка информации о последнем интерактивном объекте */
 	void ClearLastInteractionObject();
@@ -157,4 +176,17 @@ public:
 	/* Отключение поиска интерактивных объектов */
 	UFUNCTION(BlueprintCallable, Category="Trace")
 	void StopTrace();
+
+	/* Блокировка трассировщика на акторе */
+	UFUNCTION(BlueprintCallable, Category="Trace")
+	void LockOnTarget(AActor* Actor);
+
+	/* Отмена блокировки трассировщика */
+	UFUNCTION(BlueprintCallable, Category="Trace")
+	void ClearTargetLock();
+
+	/* Возвращает актор, на котором заблокирован трассировщик */
+	FORCEINLINE const AActor* GetLockedActor() const { return LockTargetActor.Get(); }
+
+	static UInteractionComponent* Get(const APlayerController* PlayerController);
 };

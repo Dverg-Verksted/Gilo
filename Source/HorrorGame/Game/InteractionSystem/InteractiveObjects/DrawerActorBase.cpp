@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/AssetManager.h"
 #include "Game/Common/AssetMetaRegistrySource.h"
+#include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DrawerDataAsset.h"
 
@@ -44,11 +45,26 @@ void ADrawerActorBase::DrawerDragActionHandler(const FInputActionValue& ActionVa
 	Extend = FMath::Clamp(Extend, 0.0f, MaxExtendDistance);
 	NewLocation.X = Extend;
 	DrawerRootComponent->SetRelativeLocation(NewLocation, true);
-	GEngine->AddOnScreenDebugMessage(156,0.35f, FColor::Emerald, NewLocation.ToCompactString());
+	GEngine->AddOnScreenDebugMessage(156, 0.35f, FColor::Emerald, NewLocation.ToCompactString());
 }
 
-void ADrawerActorBase::DrawerDragStopActionHandler(const FInputActionValue& ActionValue)
+void ADrawerActorBase::GrabObjectTriggeredHandler(const FInputActionValue& ActionValue)
 {
+	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
+	{
+		if (Comp->GetLockedActor() != this)
+		{
+			Comp->LockOnTarget(this);
+		}
+	}
+}
+
+void ADrawerActorBase::GrabObjectCompletedHandler(const FInputActionValue& ActionValue)
+{
+	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
+	{
+		Comp->ClearTargetLock();
+	}
 }
 
 void ADrawerActorBase::OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID)
@@ -65,21 +81,22 @@ void ADrawerActorBase::OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID)
 void ADrawerActorBase::ReloadDrawerAsset()
 {
 	const auto* RegistrySystem = UDataRegistrySubsystem::Get();
-	if (IsValid(RegistrySystem))
+	if (!IsValid(RegistrySystem))
+		return;
+
+	const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DrawerID.RegistryType);
+	if (!Registry)
+		return;
+
+	if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DrawerID))
 	{
-		if (const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DrawerID.RegistryType))
+		if (UAssetManager* Manager = UAssetManager::GetIfValid())
 		{
-			if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DrawerID))
-			{
-				if (UAssetManager* Manager = UAssetManager::GetIfValid())
-				{
-					TArray<FName> Bundles;
-					Bundles.Add(FName("meshes"));
-					const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADrawerActorBase::OnDrawerAssetLoaded,
-						Asset->AssetID);
-					Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
-				}
-			}
+			TArray<FName> Bundles;
+			Bundles.Add(FName("meshes"));
+			const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADrawerActorBase::OnDrawerAssetLoaded,
+				Asset->AssetID);
+			Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
 		}
 	}
 }
@@ -115,20 +132,16 @@ void ADrawerActorBase::OnHoverBegin_Implementation(APlayerController* PlayerCont
 	EnableInput(PlayerController);
 	DragPlayerController = PlayerController;
 
-	if (!bInputBinded)
+	if (!bInputBinded && DrawerDragAction && GrabObjectAction)
 	{
 		// Привязка к вводу
 		if (auto* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			ensure(DrawerDragAction);
-
-			if (DrawerDragAction)
-			{
-				EIC->BindAction(DrawerDragAction, ETriggerEvent::Triggered, this, &ADrawerActorBase::DrawerDragActionHandler);
-				EIC->BindAction(DrawerDragAction, ETriggerEvent::Completed, this, &ADrawerActorBase::DrawerDragStopActionHandler);
-				EIC->BindAction(DrawerDragAction, ETriggerEvent::Canceled, this, &ADrawerActorBase::DrawerDragStopActionHandler);
-				bInputBinded = true;
-			}
+			EIC->BindAction(DrawerDragAction, ETriggerEvent::Triggered, this, &ADrawerActorBase::DrawerDragActionHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Triggered, this, &ADrawerActorBase::GrabObjectTriggeredHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADrawerActorBase::GrabObjectCompletedHandler);
+			EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADrawerActorBase::GrabObjectCompletedHandler);
+			bInputBinded = true;
 		}
 	}
 
