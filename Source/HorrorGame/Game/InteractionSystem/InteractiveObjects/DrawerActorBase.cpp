@@ -1,8 +1,6 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/InteractionSystem/InteractiveObjects/DrawerActorBase.h"
-
 #include "DataRegistrySubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,18 +10,17 @@
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DrawerDataAsset.h"
 
-ADrawerActorBase::ADrawerActorBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+ADrawerActorBase::ADrawerActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this,TEXT("SceneRoot"));
+	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
 
-	DrawerRootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this,TEXT("DrawerRootComponent"));
+	DrawerRootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("DrawerRootComponent"));
 	DrawerRootComponent->SetupAttachment(RootComponent);
 
-	DrawerMeshComponent = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this,TEXT("DrawerMeshComponent"));
+	DrawerMeshComponent = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("DrawerMeshComponent"));
 	DrawerMeshComponent->SetupAttachment(DrawerRootComponent);
 
 	DragPlayerController = nullptr;
@@ -36,8 +33,7 @@ void ADrawerActorBase::BeginPlay()
 
 void ADrawerActorBase::DrawerDragActionHandler(const FInputActionValue& ActionValue)
 {
-	if (!DragPlayerController)
-		return;
+	if (!DragPlayerController) return;
 
 	FVector NewLocation = DrawerRootComponent->GetRelativeLocation();
 	float Extend = NewLocation.X;
@@ -69,35 +65,32 @@ void ADrawerActorBase::GrabObjectCompletedHandler(const FInputActionValue& Actio
 
 void ADrawerActorBase::OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID)
 {
-	if (const auto* Manager = UAssetManager::GetIfValid())
+	const auto* Manager = UAssetManager::GetIfValid();
+	if (!Manager) return;
+
+	if (auto* DoorData = Cast<UDrawerDataAsset>(Manager->GetPrimaryAssetObject(LoadedAssetID)))
 	{
-		if (auto* DoorData = Cast<UDrawerDataAsset>(Manager->GetPrimaryAssetObject(LoadedAssetID)))
-		{
-			InitFromAsset_Implementation(DoorData);
-		}
+		InitFromAsset_Implementation(DoorData);
 	}
 }
 
 void ADrawerActorBase::ReloadDrawerAsset()
 {
 	const auto* RegistrySystem = UDataRegistrySubsystem::Get();
-	if (!IsValid(RegistrySystem))
-		return;
+	if (!IsValid(RegistrySystem)) return;
 
 	const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DrawerID.RegistryType);
-	if (!Registry)
-		return;
+	if (!Registry) return;
+
+	auto* Manager = UAssetManager::GetIfValid();
+	if (!Manager) return;
 
 	if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DrawerID))
 	{
-		if (UAssetManager* Manager = UAssetManager::GetIfValid())
-		{
-			TArray<FName> Bundles;
-			Bundles.Add(FName("meshes"));
-			const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADrawerActorBase::OnDrawerAssetLoaded,
-				Asset->AssetID);
-			Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
-		}
+		TArray<FName> Bundles;
+		Bundles.Add(FName("meshes"));
+		const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADrawerActorBase::OnDrawerAssetLoaded, Asset->AssetID);
+		Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
 	}
 }
 
@@ -178,8 +171,7 @@ void ADrawerActorBase::OnHoverEnd_Implementation(APlayerController* PlayerContro
 void ADrawerActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADrawerActorBase,
-		    DrawerID))
+	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADrawerActorBase, DrawerID))
 	{
 		ReloadDrawerAsset();
 	}

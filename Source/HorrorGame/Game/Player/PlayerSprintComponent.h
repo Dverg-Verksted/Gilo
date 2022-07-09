@@ -7,8 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerSprintComponent.generated.h"
 
-
-UCLASS(BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(BlueprintType, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class HORRORGAME_API UPlayerSprintComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -21,31 +20,31 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnExhaustedChangedEvent, bool, Exhausted, float, Stamina);
 
 	/** Скорость ходьбы */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float WalkSpeed;
 
 	/* Макс. скорость ходьбы в приседе */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float MaxWalkSpeedCrouched;
 
 	/** Скорость бега */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float RunSpeedMagnitude;
 
 	/** Макс. количество выносливости*/
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float MaxStaminaAmount;
 
 	/** Мин. количество выносливости для возобновления бега */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float MinStaminaAmount;
 
 	/** Темп снижения выносливости */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float StaminaDrainRate;
 
 	/** Темп восстановления выносливости */
-	UPROPERTY(EditDefaultsOnly, Category="Movement")
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 	float StaminaRestoreRate;
 
 	/** Вызывается при обновлении текущего значения выносливости */

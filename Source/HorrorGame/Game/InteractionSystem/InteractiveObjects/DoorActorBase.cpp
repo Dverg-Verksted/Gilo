@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/InteractionSystem/InteractiveObjects/DoorActorBase.h"
 #include "DataRegistrySubsystem.h"
 #include "EnhancedInputComponent.h"
@@ -11,18 +10,17 @@
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DoorDataAsset.h"
 
-ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this,TEXT("SceneRoot"));
+	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
 
-	DoorRootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this,TEXT("DoorRootComponent"));
+	DoorRootComponent = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("DoorRootComponent"));
 	DoorRootComponent->SetupAttachment(RootComponent);
 
-	DoorMeshComponent = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this,TEXT("DoorMeshComponent"));
+	DoorMeshComponent = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("DoorMeshComponent"));
 	DoorMeshComponent->SetupAttachment(DoorRootComponent);
 
 	DragPlayerController = nullptr;
@@ -36,23 +34,20 @@ void ADoorActorBase::BeginPlay()
 void ADoorActorBase::ReloadDoorAsset()
 {
 	const auto* RegistrySystem = UDataRegistrySubsystem::Get();
-	if (!IsValid(RegistrySystem))
-		return;
+	if (!IsValid(RegistrySystem)) return;
 
 	const UDataRegistry* Registry = RegistrySystem->GetRegistryForType(DoorID.RegistryType);
-	if (!Registry)
-		return;
+	if (!Registry) return;
+
+	UAssetManager* Manager = UAssetManager::GetIfValid();
+	if (!Manager) return;
 
 	if (auto* Asset = Registry->GetCachedItem<FAssetMetaRegistryRow>(DoorID))
 	{
-		if (UAssetManager* Manager = UAssetManager::GetIfValid())
-		{
-			TArray<FName> Bundles;
-			Bundles.Add(FName("meshes"));
-			const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADoorActorBase::OnDoorAssetLoaded,
-				Asset->AssetID);
-			Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
-		}
+		TArray<FName> Bundles;
+		Bundles.Add(FName("meshes"));
+		const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &ADoorActorBase::OnDoorAssetLoaded, Asset->AssetID);
+		Manager->LoadPrimaryAsset(Asset->AssetID, Bundles, Delegate);
 	}
 }
 
@@ -153,8 +148,7 @@ void ADoorActorBase::Tick(float DeltaTime)
 
 void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
 {
-	if (!DragPlayerController)
-		return;
+	if (!DragPlayerController) return;
 
 	float Angle = DoorRootComponent->GetRelativeRotation().Yaw;
 	Angle += ActionValue.Get<float>() * DragMagnitude;
@@ -177,8 +171,7 @@ void ADoorActorBase::OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID)
 void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (PropertyChangedEvent.MemberProperty &&
-	    PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADoorActorBase, DoorID))
+	if (PropertyChangedEvent.MemberProperty && PropertyChangedEvent.MemberProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ADoorActorBase, DoorID))
 	{
 		ReloadDoorAsset();
 	}

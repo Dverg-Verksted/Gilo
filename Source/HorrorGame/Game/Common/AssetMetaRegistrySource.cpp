@@ -7,15 +7,13 @@
 
 void UAssetMetaRegistrySource::RefreshRuntimeSources()
 {
-	if (!IsInitialized())
-		return;
+	if (!IsInitialized()) return;
 
 	UDataRegistrySubsystem* Subsystem = UDataRegistrySubsystem::Get();
 	TArray<FAssetData> AssetDataList;
 	const UScriptStruct* ItemStruct = GetItemStruct();
 
-	if (!ItemStruct || !Subsystem)
-		return;
+	if (!ItemStruct || !Subsystem) return;
 
 	AssetsCache.Empty();
 
@@ -37,9 +35,7 @@ void UAssetMetaRegistrySource::RefreshRuntimeSources()
 			// Need to register for changes to virtual paths
 			if (!NewAssetSearchRootHandle.IsValid())
 			{
-				NewAssetSearchRootHandle = AssetManager.Register_OnAddedAssetSearchRoot(
-					FOnAddedAssetSearchRoot::FDelegate::CreateUObject(
-						this, &UAssetMetaRegistrySource::OnNewAssetSearchRoot));
+				NewAssetSearchRootHandle = AssetManager.Register_OnAddedAssetSearchRoot(FOnAddedAssetSearchRoot::FDelegate::CreateUObject(this, &UAssetMetaRegistrySource::OnNewAssetSearchRoot));
 			}
 		}
 	}
@@ -74,8 +70,7 @@ bool UAssetMetaRegistrySource::IsAssetWithNameExists(const FName& Path, const FN
 	const UAssetManager& AssetManager = UAssetManager::Get();
 	const IAssetRegistry& AssetRegistry = AssetManager.GetAssetRegistry();
 	AssetRegistry.EnumerateAllAssets(
-		[CheckName, Path, &Result, &ExistsPath](const FAssetData& AssetData)
-		{
+		[CheckName, Path, &Result, &ExistsPath](const FAssetData& AssetData) {
 			FName AssetName = NAME_None;
 			if (AssetData.GetTagValue(AssetUniqueNameTag, AssetName) && AssetName != NAME_None)
 			{
@@ -87,7 +82,8 @@ bool UAssetMetaRegistrySource::IsAssetWithNameExists(const FName& Path, const FN
 				}
 			}
 			return true;
-		}, true);
+		},
+		true);
 	return Result;
 }
 
@@ -112,8 +108,7 @@ EDataRegistryAvailability UAssetMetaRegistrySource::GetSourceAvailability() cons
 	return EDataRegistryAvailability::PreCached;
 }
 
-EDataRegistryAvailability UAssetMetaRegistrySource::GetItemAvailability(const FName& ResolvedName,
-	const uint8** PrecachedDataPtr) const
+EDataRegistryAvailability UAssetMetaRegistrySource::GetItemAvailability(const FName& ResolvedName, const uint8** PrecachedDataPtr) const
 {
 	LastAccessTime = UDataRegistry::GetCurrentTime();
 
@@ -140,8 +135,7 @@ bool UAssetMetaRegistrySource::AcquireItem(FDataRegistrySourceAcquireRequest&& R
 
 	PendingAcquires.Add(Request);
 	// Tell it to go next frame
-	FStreamableHandle::ExecuteDelegate(
-		FStreamableDelegate::CreateUObject(this, &UAssetMetaRegistrySource::HandlePendingAcquires));
+	FStreamableHandle::ExecuteDelegate(FStreamableDelegate::CreateUObject(this, &UAssetMetaRegistrySource::HandlePendingAcquires));
 
 	return true;
 }
@@ -150,7 +144,7 @@ bool UAssetMetaRegistrySource::DoesAssetPassFilter(const FAssetData& AssetData, 
 {
 	const UDataRegistrySettings* Settings = GetDefault<UDataRegistrySettings>();
 
-	// Call into parent to check search rules if needed	
+	// Call into parent to check search rules if needed
 	if (bNewRegisteredAsset)
 	{
 		FAssetManagerSearchRules ModifiedRules = SearchRules;
@@ -167,8 +161,7 @@ bool UAssetMetaRegistrySource::DoesAssetPassFilter(const FAssetData& AssetData, 
 	{
 		if (const auto* AssetClass = AssetData.GetClass())
 		{
-			if (AssetClass->IsChildOf(SearchRules.AssetBaseClass))
-				return true;
+			if (AssetClass->IsChildOf(SearchRules.AssetBaseClass)) return true;
 		}
 	}
 

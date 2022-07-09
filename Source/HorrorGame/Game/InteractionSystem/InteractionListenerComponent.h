@@ -26,12 +26,12 @@ public:
 	/* Убрали прицел с интерактивного объекта, которому принадлежит текущий компонент */
 	UPROPERTY(BlueprintAssignable)
 	FOnOwnerHoverEndEvent OnOwnerHoverEnd;
-	
+
 	// Interactive object interface BEGIN
 	virtual void OnHoverBegin_Implementation(APlayerController* PlayerController, const FHitResult& Hit) override;
 	virtual void OnHoverEnd_Implementation(APlayerController* PlayerController) override;
 	// Interactive object interface END
-	
+
 protected:
 	virtual void BeginPlay() override;
 

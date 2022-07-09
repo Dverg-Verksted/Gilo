@@ -8,9 +8,8 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "InteractionComponent.generated.h"
 
-
 /* Компонент для поиска и взаимодействия с интерактивными объектами */
-UCLASS(BlueprintType, NotBlueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(BlueprintType, NotBlueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class HORRORGAME_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -29,27 +28,27 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionTargetUnlockEvent, AActor*, UnlockedTarget);
 
 	/* Интервал таймера трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceTimerInterval = 0.1f;
 
 	/* Дистанция трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceDistance;
 
 	/* Радиус сферы трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceRadius;
 
 	/* Дистанция удерживания объекта от игрока */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float GrabDistance = 100.0f;
 
 	/* Сила швыряния схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float PushGrabbedForce = 2000.0f;
 
 	/* Типы объектов для трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 
 	/* Изменился текущий интерактивный объект */
@@ -73,19 +72,19 @@ public:
 	FOnInteractionTargetUnlockEvent OnInteractionTargetUnlock;
 
 	/* Действие использования предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> UseAction;
 
 	/* Действие хватания предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabAction;
 
 	/* Действие швыряния схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> PushGrabbedAction;
 
 	/* Действие вращение схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabbedRotationAction;
 
 protected:
@@ -170,19 +169,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/* Включение поиска интерактивных объектов */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void StartTrace();
 
 	/* Отключение поиска интерактивных объектов */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void StopTrace();
 
 	/* Блокировка трассировщика на акторе */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void LockOnTarget(AActor* Actor);
 
 	/* Отмена блокировки трассировщика */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void ClearTargetLock();
 
 	/* Возвращает актор, на котором заблокирован трассировщик */

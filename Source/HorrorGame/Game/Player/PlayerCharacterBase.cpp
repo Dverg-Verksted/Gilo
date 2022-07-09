@@ -6,8 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	StrafeMoveMagnitude = 0.75f;
@@ -92,17 +91,15 @@ void APlayerCharacterBase::PawnClientRestart()
 	Super::PawnClientRestart();
 	InteractionComponent->StopTrace();
 	PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->ClearAllMappings();
-			if (DefaultInputContext)
-				Subsystem->AddMappingContext(DefaultInputContext, 0);
+	if (!PlayerController) return;
 
-			InteractionComponent->OnPlayerReady();
-			InteractionComponent->StartTrace();
-		}
+	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	{
+		Subsystem->ClearAllMappings();
+		if (DefaultInputContext) Subsystem->AddMappingContext(DefaultInputContext, 0);
+
+		InteractionComponent->OnPlayerReady();
+		InteractionComponent->StartTrace();
 	}
 }
 
@@ -128,9 +125,7 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 	DesiredCameraLocation += CameraPeekOffset;
 
 	// Секси плавная интерполяция камеры
-	const FVector ResultCameraLocation = UKismetMathLibrary::VectorSpringInterp(MainCameraBoom->GetRelativeLocation(), DesiredCameraLocation,
-		CameraInterpSpringState,
-		800.0f, 0.85f, DeltaTime, 6.2f);
+	const FVector ResultCameraLocation = UKismetMathLibrary::VectorSpringInterp(MainCameraBoom->GetRelativeLocation(), DesiredCameraLocation, CameraInterpSpringState, 800.0f, 0.85f, DeltaTime, 6.2f);
 	MainCameraBoom->SetRelativeLocation(ResultCameraLocation);
 }
 
@@ -142,11 +137,9 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		if (MoveAction)
 		{
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this,
-				&APlayerCharacterBase::MoveStartActionHandler);
+			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &APlayerCharacterBase::MoveStartActionHandler);
 			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this,
-				&APlayerCharacterBase::MoveStopActionHandler);
+			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::MoveStopActionHandler);
 		}
 		if (LookAction)
 		{
@@ -161,22 +154,18 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 		if (CrouchAction)
 		{
-			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this,
-				&APlayerCharacterBase::CrouchActionHandler);
+			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacterBase::CrouchActionHandler);
 		}
 
 		if (SprintAction)
 		{
 			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
-			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this,
-				&APlayerCharacterBase::SprintStopHandler);
+			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::SprintStopHandler);
 		}
 	}
 }
 
-void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
-{
-}
+void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue) {}
 
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
 {
@@ -199,9 +188,7 @@ void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValu
 	AddMovementInput(GetActorRightVector(), InputAxis.Y);
 }
 
-void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue)
-{
-}
+void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue) {}
 
 void APlayerCharacterBase::LookActionHandler(const FInputActionValue& ActionValue)
 {
@@ -215,13 +202,11 @@ void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValu
 	const float Magnitude = ActionValue.Get<float>();
 	if (Magnitude > 0)
 	{
-		if (PeekState == PeekLeft)
-			return;
+		if (PeekState == PeekLeft) return;
 	}
 	else if (Magnitude < 0)
 	{
-		if (PeekState == PeekRight)
-			return;
+		if (PeekState == PeekRight) return;
 	}
 
 	if (PeekState == Default)
@@ -231,21 +216,18 @@ void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValu
 	}
 	else
 	{
-		if (PeekTimeline.IsReversing())
-			PeekTimeline.Play();
+		if (PeekTimeline.IsReversing()) PeekTimeline.Play();
 	}
 }
 
 void APlayerCharacterBase::PeekStopHandler(const FInputActionValue& ActionValue)
 {
-	if (PeekState != Default)
-		PeekTimeline.Reverse();
+	if (PeekState != Default) PeekTimeline.Reverse();
 }
 
 void APlayerCharacterBase::PeekTimelineProgress(float Value)
 {
-	if (PeekState == Default)
-		return;
+	if (PeekState == Default) return;
 
 	PeekAlpha = Value;
 

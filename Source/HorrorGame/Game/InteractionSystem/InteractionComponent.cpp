@@ -21,51 +21,48 @@ UInteractionComponent::UInteractionComponent()
 	LockTargetActor = nullptr;
 }
 
-
 void UInteractionComponent::OnPlayerReady()
 {
-	if (APawn* Pawn = Cast<APawn>(GetOwner()))
-	{
-		if (auto* Controller = Cast<APlayerController>(Pawn->GetController()))
-		{
-			PlayerController = Controller;
-			PlayerPawn = Pawn;
-			PhysicsHandleComponent = Cast<UPhysicsHandleComponent>(Pawn->GetComponentByClass(UPhysicsHandleComponent::StaticClass()));
+	APawn* Pawn = Cast<APawn>(GetOwner());
+	ensure(Pawn);
+	if (!Pawn) return;
 
-			if (auto* InputComponent = Cast<UEnhancedInputComponent>(Controller->InputComponent))
-			{
-				ensure(UseAction);
-				ensure(GrabAction);
-				ensure(PushGrabbedAction);
-				ensure(GrabbedRotationAction);
+	APlayerController* Controller = Cast<APlayerController>(Pawn->GetController());
+	ensure(Controller);
+	if (!Controller) return;
 
-				if (UseAction)
-				{
-					InputComponent->BindAction(UseAction, ETriggerEvent::Triggered, this, &UInteractionComponent::UseActionHandler);
-				}
-				if (GrabAction)
-				{
-					InputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &UInteractionComponent::GrabActionHandler);
-					InputComponent->BindAction(GrabAction, ETriggerEvent::Completed, this, &UInteractionComponent::GrabActionStopHandler);
-					InputComponent->BindAction(GrabAction, ETriggerEvent::Canceled, this, &UInteractionComponent::GrabActionStopHandler);
-				}
-				if (PushGrabbedAction)
-				{
-					InputComponent->BindAction(PushGrabbedAction, ETriggerEvent::Triggered, this,
-						&UInteractionComponent::PushGrabbedActionHandler);
-				}
-				if (GrabbedRotationAction)
-				{
-					InputComponent->BindAction(GrabbedRotationAction, ETriggerEvent::Triggered, this,
-						&UInteractionComponent::GrabbedRotationActionHandler);
-				}
-			}
-		}
-	}
+	PlayerController = Controller;
+	PlayerPawn = Pawn;
+	PhysicsHandleComponent = Cast<UPhysicsHandleComponent>(Pawn->GetComponentByClass(UPhysicsHandleComponent::StaticClass()));
 
-	ensure(PlayerController);
-	ensure(PlayerPawn);
 	ensure(PhysicsHandleComponent);
+
+	UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(Controller->InputComponent);
+	if (!InputComponent) return;
+
+	ensure(UseAction);
+	ensure(GrabAction);
+	ensure(PushGrabbedAction);
+	ensure(GrabbedRotationAction);
+
+	if (UseAction)
+	{
+		InputComponent->BindAction(UseAction, ETriggerEvent::Triggered, this, &UInteractionComponent::UseActionHandler);
+	}
+	if (GrabAction)
+	{
+		InputComponent->BindAction(GrabAction, ETriggerEvent::Triggered, this, &UInteractionComponent::GrabActionHandler);
+		InputComponent->BindAction(GrabAction, ETriggerEvent::Completed, this, &UInteractionComponent::GrabActionStopHandler);
+		InputComponent->BindAction(GrabAction, ETriggerEvent::Canceled, this, &UInteractionComponent::GrabActionStopHandler);
+	}
+	if (PushGrabbedAction)
+	{
+		InputComponent->BindAction(PushGrabbedAction, ETriggerEvent::Triggered, this, &UInteractionComponent::PushGrabbedActionHandler);
+	}
+	if (GrabbedRotationAction)
+	{
+		InputComponent->BindAction(GrabbedRotationAction, ETriggerEvent::Triggered, this, &UInteractionComponent::GrabbedRotationActionHandler);
+	}
 }
 
 void UInteractionComponent::BeginPlay()
@@ -95,8 +92,7 @@ void UInteractionComponent::OnTraceTimerTick()
 	if (bTracingEnabled && !bGrabbingObject && !bIsLocked)
 	{
 		const FVector Start = PlayerController->PlayerCameraManager->GetCameraLocation();
-		const FVector Forward = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().
-		                                          GetForwardVector();
+		const FVector Forward = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().GetForwardVector();
 		const FVector Stop = Start + Forward * TraceDistance;
 		Trace(Start, Stop);
 	}
@@ -116,8 +112,7 @@ void UInteractionComponent::Trace(const FVector& Start, const FVector& Stop)
 
 	TArray<FHitResult> Hits;
 
-	UKismetSystemLibrary::SphereTraceMultiForObjects(this, Start, Stop, TraceRadius, TraceObjectTypes, false, IgnoreActors,
-		EDrawDebugTrace::None, Hits, true);
+	UKismetSystemLibrary::SphereTraceMultiForObjects(this, Start, Stop, TraceRadius, TraceObjectTypes, false, IgnoreActors, EDrawDebugTrace::None, Hits, true);
 
 	float MinDistance = TraceDistance;
 	bool HasResult = false;
@@ -174,25 +169,24 @@ void UInteractionComponent::SelectNewInteractionObject(const FHitResult& Hit, AA
 {
 	ClearLastInteractionObject();
 
-	if (Actor)
+	if (!Actor) return;
+
+	LastInteractiveObject = Actor;
+	IInteractiveObject::Execute_OnHoverBegin(Actor, PlayerController, Hit);
+	OnHoverBegin.Broadcast(Actor, Hit);
+
+	// Уведомляем дочерние компоненты актора, реализующий интерфейс InteractiveObject
+	TArray<UActorComponent*> InteractionListeners;
+	Actor->GetComponents(InteractionListeners, false);
+	for (auto* Comp : InteractionListeners)
 	{
-		LastInteractiveObject = Actor;
-		IInteractiveObject::Execute_OnHoverBegin(Actor, PlayerController, Hit);
-		OnHoverBegin.Broadcast(Actor, Hit);
-
-		// Уведомляем дочерние компоненты актора, реализующий интерфейс InteractiveObject
-		TArray<UActorComponent*> InteractionListeners;
-		Actor->GetComponents(InteractionListeners, false);
-		for (auto* Comp : InteractionListeners)
+		if (Comp->GetClass()->ImplementsInterface(UInteractiveObject::StaticClass()))
 		{
-			if (Comp->GetClass()->ImplementsInterface(UInteractiveObject::StaticClass()))
-			{
-				IInteractiveObject::Execute_OnHoverBegin(Comp, PlayerController, Hit);
-			}
+			IInteractiveObject::Execute_OnHoverBegin(Comp, PlayerController, Hit);
 		}
-
-		OnInteractionObjectChanged.Broadcast(LastInteractiveObject, Hit);
 	}
+
+	OnInteractionObjectChanged.Broadcast(LastInteractiveObject, Hit);
 }
 
 void UInteractionComponent::ClearLastInteractionObject()
@@ -216,19 +210,16 @@ void UInteractionComponent::ClearLastInteractionObject()
 	LastInteractiveObject = nullptr;
 }
 
-
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!PlayerController)
-		return;
+	if (!PlayerController) return;
 
 	if (bGrabbingObject)
 	{
 		const FVector Start = PlayerController->PlayerCameraManager->GetCameraLocation();
-		const FVector Forward = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().
-		                                          GetForwardVector();
+		const FVector Forward = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().GetForwardVector();
 		const FVector TargetLocation = Start + Forward * GrabDistance;
 		if (auto* Comp = PhysicsHandleComponent->GetGrabbedComponent())
 		{
@@ -257,8 +248,7 @@ void UInteractionComponent::StopTrace()
 
 void UInteractionComponent::LockOnTarget(AActor* Actor)
 {
-	if (IsValid(LockTargetActor))
-		ClearTargetLock();
+	if (IsValid(LockTargetActor)) ClearTargetLock();
 
 	if (IsValid(Actor))
 	{
@@ -274,11 +264,9 @@ void UInteractionComponent::LockOnTarget(AActor* Actor)
 
 void UInteractionComponent::ClearTargetLock()
 {
-	if (bGrabbingObject)
-		return;
+	if (bGrabbingObject) return;
 
-	if (LockTargetActor)
-		OnInteractionTargetUnlock.Broadcast(LockTargetActor);
+	if (LockTargetActor) OnInteractionTargetUnlock.Broadcast(LockTargetActor);
 
 	LockTargetActor = nullptr;
 	bIsLocked = false;
@@ -307,8 +295,7 @@ void UInteractionComponent::UseActionHandler(const FInputActionValue& ActionValu
 
 void UInteractionComponent::GrabActionHandler(const FInputActionValue& ActionValue)
 {
-	if (bGrabbingObject || bGrabTriggered)
-		return;
+	if (bGrabbingObject || bGrabTriggered) return;
 
 	if (LastInteractiveObject)
 	{
@@ -319,8 +306,7 @@ void UInteractionComponent::GrabActionHandler(const FInputActionValue& ActionVal
 		{
 			ComponentToGrab->WakeAllRigidBodies();
 			GrabbedDesiredRotation = ComponentToGrab->GetComponentRotation();
-			PhysicsHandleComponent->GrabComponentAtLocationWithRotation(ComponentToGrab, NAME_None, ComponentToGrab->GetComponentLocation(),
-				GrabbedDesiredRotation);
+			PhysicsHandleComponent->GrabComponentAtLocationWithRotation(ComponentToGrab, NAME_None, ComponentToGrab->GetComponentLocation(), GrabbedDesiredRotation);
 			IInteractiveObject::Execute_OnObjectGrabbed(LastInteractiveObject);
 			bGrabbingObject = true;
 		}
@@ -358,8 +344,7 @@ void UInteractionComponent::PushGrabbedActionHandler(const FInputActionValue& Ac
 			ReleaseGrabbedObject();
 
 			// Задаем импульс в сторону камеры
-			const FVector Impulse = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().
-			                                          GetForwardVector() * PushGrabbedForce;
+			const FVector Impulse = PlayerController->PlayerCameraManager->GetCameraRotation().Quaternion().GetForwardVector() * PushGrabbedForce;
 			GrabbedComp->AddImpulse(Impulse, NAME_None);
 		}
 	}

@@ -10,7 +10,7 @@
 /**
  * Настройки интерактивной системы
  */
-UCLASS(Config=Game, defaultconfig, meta = (DisplayName="Настройки взаимодействия"))
+UCLASS(Config = Game, defaultconfig, meta = (DisplayName = "Настройки взаимодействия"))
 class HORRORGAME_API UInteractionSettings : public UDeveloperSettings
 {
 	GENERATED_BODY()
@@ -19,21 +19,19 @@ public:
 	UInteractionSettings();
 
 	/* Дистанция трассировки */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Дистанция",
-		meta=(ToolTip="Дистанция трассировки", ClampMin=10.0f, UIMin=10.0f))
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName = "Дистанция", meta = (ToolTip = "Дистанция трассировки", ClampMin = 10.0f, UIMin = 10.0f))
 	float TraceDistance;
 
 	/* Радиус трассировки */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Радиус",
-		meta=(ToolTip="Радиус сферы трассировки", ClampMin=0.5f, UIMin=0.5f))
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName = "Радиус", meta = (ToolTip = "Радиус сферы трассировки", ClampMin = 0.5f, UIMin = 0.5f))
 	float TraceRadius;
 
 	/* Типы объектов для трассировки */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Типы объектов")
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName = "Типы объектов")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 
 	/* Профиль коллизий интерактивного объекта */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName="Профиль коллизий")
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Трассировка", DisplayName = "Профиль коллизий")
 	FName CollisionProfile;
 
 	static FORCEINLINE const UInteractionSettings* Get()

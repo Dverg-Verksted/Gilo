@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/InteractionSystem/InteractionListenerComponent.h"
 
 UInteractionListenerComponent::UInteractionListenerComponent()

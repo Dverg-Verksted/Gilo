@@ -1,17 +1,14 @@
 ﻿// It is owned by the company Dverg Verksted.
 
-
 #include "Game/Player/WalkCameraShakeComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 
 UWalkCameraShakeComponent::UWalkCameraShakeComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	CurrentCameraShake = nullptr;
 }
-
 
 void UWalkCameraShakeComponent::BeginPlay()
 {
@@ -22,19 +19,16 @@ void UWalkCameraShakeComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!IsActive())
-		return;
+	if (!IsActive()) return;
 
-	if (const auto* Pawn = Cast<ACharacter>(GetOwner()))
+	const auto* Pawn = Cast<ACharacter>(GetOwner());
+	if (Pawn && Pawn->GetCharacterMovement()->IsFalling())
 	{
-		if (Pawn->GetCharacterMovement()->IsFalling())
+		if (bCameraShakeActive)
 		{
-			if (bCameraShakeActive)
-			{
-				StopCameraShake();
-			}
-			return;
+			StopCameraShake();
 		}
+		return;
 	}
 
 	const FVector Velocity = GetOwner()->GetVelocity();

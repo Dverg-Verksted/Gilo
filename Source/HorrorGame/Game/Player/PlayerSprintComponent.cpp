@@ -1,8 +1,6 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/Player/PlayerSprintComponent.h"
-
 #include "PlayerSettings.h"
 #include "GameFramework/Character.h"
 
@@ -26,7 +24,6 @@ UPlayerSprintComponent::UPlayerSprintComponent()
 	StaminaRestoreRate = 0.3f;
 	CurrentStamina = MaxStaminaAmount;
 }
-
 
 void UPlayerSprintComponent::BeginPlay()
 {
@@ -56,41 +53,39 @@ void UPlayerSprintComponent::ToggleSprint(bool bSprintEnabled)
 	bSprinting = bSprintEnabled;
 }
 
-
 void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 {
+	ensure(CharacterMovement);
+
+	if (!CharacterMovement) return;
+
 	bool bNewExhausted = bExhausted;
 	float NewStaminaValue = CurrentStamina;
 
-	if (ensure(CharacterMovement))
+	if (bSprinting && !bExhausted && CurrentStamina > 0.0f)
 	{
-		if (bSprinting && !bExhausted && CurrentStamina > 0.0f)
+		NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaDrainRate);
+		if (NewStaminaValue == 0.0f)
 		{
-			NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaDrainRate);
-			if (NewStaminaValue == 0.0f)
-			{
-				// Персонаж вымотался
-				bNewExhausted = true;
-			}
-			CharacterMovement->MaxWalkSpeed = NewStaminaValue > 0.0f ? WalkSpeed * RunSpeedMagnitude : WalkSpeed;
-			CharacterMovement->MaxWalkSpeedCrouched = NewStaminaValue > 0.0f
-				                                          ? MaxWalkSpeedCrouched * RunSpeedMagnitude
-				                                          : MaxWalkSpeedCrouched;
+			// Персонаж вымотался
+			bNewExhausted = true;
 		}
-		else
+		CharacterMovement->MaxWalkSpeed = NewStaminaValue > 0.0f ? WalkSpeed * RunSpeedMagnitude : WalkSpeed;
+		CharacterMovement->MaxWalkSpeedCrouched = NewStaminaValue > 0.0f ? MaxWalkSpeedCrouched * RunSpeedMagnitude : MaxWalkSpeedCrouched;
+	}
+	else
+	{
+		NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, MaxStaminaAmount, DeltaTime, StaminaRestoreRate);
+		if (bExhausted)
 		{
-			NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, MaxStaminaAmount, DeltaTime, StaminaRestoreRate);
-			if (bExhausted)
+			if (NewStaminaValue >= MinStaminaAmount)
 			{
-				if (NewStaminaValue >= MinStaminaAmount)
-				{
-					// Персонаж восстановил достаточно сил для возобновления бега
-					bNewExhausted = false;
-				}
+				// Персонаж восстановил достаточно сил для возобновления бега
+				bNewExhausted = false;
 			}
-			CharacterMovement->MaxWalkSpeed = WalkSpeed;
-			CharacterMovement->MaxWalkSpeedCrouched = MaxWalkSpeedCrouched;
 		}
+		CharacterMovement->MaxWalkSpeed = WalkSpeed;
+		CharacterMovement->MaxWalkSpeedCrouched = MaxWalkSpeedCrouched;
 	}
 	if (NewStaminaValue != CurrentStamina)
 	{

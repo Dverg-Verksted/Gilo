@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/Player/PlayerSettings.h"
 
 UPlayerSettings::UPlayerSettings()
