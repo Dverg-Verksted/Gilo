@@ -50,6 +50,9 @@ protected:
 	/* Остановка проигрываемого CameraShake */
 	FORCEINLINE void StopCameraShake();
 
+	/** TRUE - Если поступают команды на движение */
+	bool bMoveInputActive = false;
+
 	/* Признак проигрывания в текущий момент CameraShake */
 	bool bCameraShakeActive = false;
 
@@ -73,6 +76,9 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable, Category = "WalkCameraShake")
 	void ToggleSprinting(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "WalkCameraShake")
+	void ToggleMoveAction(bool bMoveActionEnabled);
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

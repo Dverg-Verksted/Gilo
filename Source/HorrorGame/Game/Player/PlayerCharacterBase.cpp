@@ -132,40 +132,45 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	auto* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	ensure(PlayerEnhancedInputComponent);
 
-	if (auto* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	if (!PlayerEnhancedInputComponent) return;
+
+	if (MoveAction)
 	{
-		if (MoveAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &APlayerCharacterBase::MoveStartActionHandler);
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::MoveStopActionHandler);
-		}
-		if (LookAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::LookActionHandler);
-		}
-		if (PeekAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Started, this, &APlayerCharacterBase::PeekActionHandler);
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::PeekActionHandler);
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::PeekStopHandler);
-		}
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &APlayerCharacterBase::MoveStartActionHandler);
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::MoveStopActionHandler);
+	}
+	if (LookAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::LookActionHandler);
+	}
+	if (PeekAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Started, this, &APlayerCharacterBase::PeekActionHandler);
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::PeekActionHandler);
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::PeekStopHandler);
+	}
 
-		if (CrouchAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacterBase::CrouchActionHandler);
-		}
+	if (CrouchAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacterBase::CrouchActionHandler);
+	}
 
-		if (SprintAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
-			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::SprintStopHandler);
-		}
+	if (SprintAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::SprintStopHandler);
 	}
 }
 
-void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue) {}
+void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
+{
+	PlayerSprintComponent->ToggleMoveActionInput(true);
+	WalkCameraShakeComponent->ToggleMoveAction(true);
+}
 
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
 {
@@ -184,17 +189,30 @@ void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValu
 		InputAxis.Y = InputAxis.Y * (1.0f - PeekSlowDownAmount);
 	}
 
-	AddMovementInput(GetActorForwardVector(), InputAxis.X);
-	AddMovementInput(GetActorRightVector(), InputAxis.Y);
+	if (InputAxis.X != 0.0f)
+	{
+		AddMovementInput(GetActorForwardVector(), InputAxis.X);
+		bMoveInputActive = true;
+	}
+	if (InputAxis.Y != 0.0f)
+	{
+		AddMovementInput(GetActorRightVector(), InputAxis.Y);
+		bMoveInputActive = true;
+	}
 }
 
-void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue) {}
+void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue)
+{
+	bMoveInputActive = false;
+	PlayerSprintComponent->ToggleMoveActionInput(false);
+	WalkCameraShakeComponent->ToggleMoveAction(false);
+}
 
 void APlayerCharacterBase::LookActionHandler(const FInputActionValue& ActionValue)
 {
 	const FVector InputAxis = ActionValue.Get<FVector>();
-	AddControllerPitchInput(InputAxis.Y);
-	AddControllerYawInput(InputAxis.X);
+	if (InputAxis.Y != 0.0f) AddControllerPitchInput(InputAxis.Y);
+	if (InputAxis.X != 0.0f) AddControllerYawInput(InputAxis.X);
 }
 
 void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValue)

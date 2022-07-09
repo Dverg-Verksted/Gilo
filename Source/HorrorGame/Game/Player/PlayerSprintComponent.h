@@ -74,11 +74,19 @@ protected:
 	UPROPERTY()
 	bool bExhausted;
 
+	/** TRUE - Если поступают команды на движение */
+	UPROPERTY()
+	bool bMoveInputActive;
+
 	virtual void BeginPlay() override;
 
 public:
 	/* Возвращает TRUE - Если бежим */
 	FORCEINLINE bool IsSprinting() const { return bSprinting; }
+
+	/** Переключение активности команд движения */
+	UFUNCTION()
+	void ToggleMoveActionInput(bool bMoveActionEnabled);
 
 	/** Переключение режима бега */
 	UFUNCTION()

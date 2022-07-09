@@ -17,6 +17,7 @@ UPlayerSprintComponent::UPlayerSprintComponent()
 
 	bSprinting = false;
 	bExhausted = false;
+	bMoveInputActive = false;
 
 	MaxStaminaAmount = 15.0f;
 	MinStaminaAmount = 3.75f;
@@ -48,6 +49,11 @@ void UPlayerSprintComponent::BeginPlay()
 	}
 }
 
+void UPlayerSprintComponent::ToggleMoveActionInput(bool bMoveActionEnabled)
+{
+	bMoveInputActive = bMoveActionEnabled;
+}
+
 void UPlayerSprintComponent::ToggleSprint(bool bSprintEnabled)
 {
 	bSprinting = bSprintEnabled;
@@ -62,7 +68,7 @@ void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 	bool bNewExhausted = bExhausted;
 	float NewStaminaValue = CurrentStamina;
 
-	if (bSprinting && !bExhausted && CurrentStamina > 0.0f)
+	if (bSprinting && !bExhausted && CurrentStamina > 0.0f && bMoveInputActive)
 	{
 		NewStaminaValue = FMath::FInterpConstantTo(CurrentStamina, 0.0f, DeltaTime, StaminaDrainRate);
 		if (NewStaminaValue == 0.0f)

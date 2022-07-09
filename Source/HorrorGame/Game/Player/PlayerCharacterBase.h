@@ -122,6 +122,9 @@ private:
 
 	FVectorSpringState CameraInterpSpringState;
 
+	/** TRUE - Если нажаты клавиши движения */
+	bool bMoveInputActive = false;
+
 	/** Текущая альфа наклона От 0 до 1 */
 	float PeekAlpha;
 
