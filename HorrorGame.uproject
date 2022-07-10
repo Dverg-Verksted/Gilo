@@ -151,10 +151,6 @@
 			]
 		},
 		{
-			"Name": "GitSourceControl",
-			"Enabled": false
-		},
-		{
 			"Name": "PerforceSourceControl",
 			"Enabled": false
 		},

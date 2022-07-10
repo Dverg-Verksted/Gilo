@@ -14,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "PlayerMappableInputConfig.h"
 #include "PlayerCharacterBase.generated.h"
 
 /** Состояние наклона персонажа */
@@ -79,8 +80,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> SprintAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input", meta = (ToolTip = "Контекст ввода по-умолчанию"), AdvancedDisplay)
-	TObjectPtr<UInputMappingContext> DefaultInputContext;
+	/* Пользовательский конфиг ввода по-умолчанию */
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay, meta = (ToolTip = "Пользовательский конфиг. ввода по-умолчанию"))
+	UPlayerMappableInputConfig* PlayerDefaultInputConfig;
 
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()

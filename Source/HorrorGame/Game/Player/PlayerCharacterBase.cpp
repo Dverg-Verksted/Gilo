@@ -5,6 +5,7 @@
 #include "PlayerSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Game/Settings/HorrorSettingsLocal.h"
 
 APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -23,6 +24,7 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	CameraPeekOffset = FVector::ZeroVector;
 
 	PlayerController = nullptr;
+	PlayerDefaultInputConfig = nullptr;
 
 	MainCameraBoom = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("MainCameraBoom"));
 	if (MainCameraBoom)
@@ -93,13 +95,19 @@ void APlayerCharacterBase::PawnClientRestart()
 	PlayerController = Cast<APlayerController>(GetController());
 	if (!PlayerController) return;
 
+	auto* GameSettings = UHorrorSettingsLocal::Get();
+	ensure(GameSettings);
+	if (!GameSettings) return;
+
 	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
-		if (DefaultInputContext) Subsystem->AddMappingContext(DefaultInputContext, 0);
-
-		InteractionComponent->OnPlayerReady();
-		InteractionComponent->StartTrace();
+		if (PlayerDefaultInputConfig)
+		{
+			GameSettings->AddDefaultMappings(PlayerDefaultInputConfig, Subsystem);
+			InteractionComponent->OnPlayerReady();
+			InteractionComponent->StartTrace();
+		}
 	}
 }
 
