@@ -20,31 +20,31 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnExhaustedChangedEvent, bool, Exhausted, float, Stamina);
 
 	/** Скорость ходьбы */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float WalkSpeed;
 
 	/* Макс. скорость ходьбы в приседе */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float MaxWalkSpeedCrouched;
 
 	/** Скорость бега */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float RunSpeedMagnitude;
 
 	/** Макс. количество выносливости*/
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float MaxStaminaAmount;
 
 	/** Мин. количество выносливости для возобновления бега */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float MinStaminaAmount;
 
 	/** Темп снижения выносливости */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float StaminaDrainRate;
 
 	/** Темп восстановления выносливости */
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 	float StaminaRestoreRate;
 
 	/** Вызывается при обновлении текущего значения выносливости */
