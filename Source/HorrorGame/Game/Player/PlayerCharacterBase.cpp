@@ -90,9 +90,10 @@ void APlayerCharacterBase::BeginPlay()
 
 bool APlayerCharacterBase::InitInputMappings() const
 {
+	// TODO Вынести в специализированный InputComponent
 	if (!PlayerController) return false;
 
-	const auto* GameSettings = UHorrorSettingsLocal::Get();
+	auto* GameSettings = UHorrorSettingsLocal::Get();
 	ensure(GameSettings);
 	if (!GameSettings) return false;
 
@@ -104,15 +105,16 @@ bool APlayerCharacterBase::InitInputMappings() const
 	ensure(AssetManager);
 	if (!AssetManager) return false;
 
-	const auto* MappingConfig = Cast<UPlayerMappableInputConfig>(AssetManager->LoadAssetSync(PlayerSettings->DefaultKeyboardMapping));
-	ensure(MappingConfig);
-	if (!MappingConfig) return false;
-
 	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 	{
 		Subsystem->ClearAllMappings();
-		GameSettings->AddDefaultMappings(MappingConfig, Subsystem);
-		return true;
+		bool bInitialized = false;
+		for (const auto& Setup : PlayerSettings->InputSetups)
+		{
+			GameSettings->AddInputSetup(Setup, Subsystem);
+			bInitialized = true;
+		}
+		return bInitialized;
 	}
 	return false;
 }

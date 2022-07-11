@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "Game/Input/HorrorInputTypes.h"
 #include "PlayerSettings.generated.h"
 
 /**
@@ -74,10 +75,9 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName = "Восстановление выносливости", meta = (ToolTip = "Темп восстановления выносливости"))
 	float StaminaRestoreRate;
 
-	/* Привязка клавиш клавиатуры */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление",
-		meta = (ToolTip = "Конфиг. привязки клавиш клавиатуры по-умолчанию", AllowedClasses = "PlayerMappableInputConfig"))
-	FSoftObjectPath DefaultKeyboardMapping;
+	/** Настройки привязки клавишь для разных устроств ввода*/
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление", meta = (ToolTip = "Настройки привязки клавиш"))
+	TArray<FInputMappingSetup> InputSetups;
 
 	static FORCEINLINE const UPlayerSettings* Get()
 	{
