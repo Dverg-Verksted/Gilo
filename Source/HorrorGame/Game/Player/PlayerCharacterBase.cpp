@@ -6,6 +6,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Game/Settings/HorrorSettingsLocal.h"
+#include "Game/System/HorrorAssetManager.h"
 
 APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -24,7 +25,6 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	CameraPeekOffset = FVector::ZeroVector;
 
 	PlayerController = nullptr;
-	PlayerDefaultInputConfig = nullptr;
 
 	MainCameraBoom = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("MainCameraBoom"));
 	if (MainCameraBoom)
@@ -88,26 +88,44 @@ void APlayerCharacterBase::BeginPlay()
 	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
 
+bool APlayerCharacterBase::InitInputMappings() const
+{
+	if (!PlayerController) return false;
+
+	const auto* GameSettings = UHorrorSettingsLocal::Get();
+	ensure(GameSettings);
+	if (!GameSettings) return false;
+
+	auto* PlayerSettings = UPlayerSettings::Get();
+	ensure(PlayerSettings);
+	if (!PlayerSettings) return false;
+
+	const auto* AssetManager = UHorrorAssetManager::Get();
+	ensure(AssetManager);
+	if (!AssetManager) return false;
+
+	const auto* MappingConfig = Cast<UPlayerMappableInputConfig>(AssetManager->LoadAssetSync(PlayerSettings->DefaultKeyboardMapping));
+	ensure(MappingConfig);
+	if (!MappingConfig) return false;
+
+	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	{
+		Subsystem->ClearAllMappings();
+		GameSettings->AddDefaultMappings(MappingConfig, Subsystem);
+		return true;
+	}
+	return false;
+}
+
 void APlayerCharacterBase::PawnClientRestart()
 {
 	Super::PawnClientRestart();
 	InteractionComponent->StopTrace();
 	PlayerController = Cast<APlayerController>(GetController());
-	if (!PlayerController) return;
-
-	auto* GameSettings = UHorrorSettingsLocal::Get();
-	ensure(GameSettings);
-	if (!GameSettings) return;
-
-	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	if (InitInputMappings())
 	{
-		Subsystem->ClearAllMappings();
-		if (PlayerDefaultInputConfig)
-		{
-			GameSettings->AddDefaultMappings(PlayerDefaultInputConfig, Subsystem);
-			InteractionComponent->OnPlayerReady();
-			InteractionComponent->StartTrace();
-		}
+		InteractionComponent->OnPlayerReady();
+		InteractionComponent->StartTrace();
 	}
 }
 

@@ -80,10 +80,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> SprintAction;
 
-	/* Пользовательский конфиг ввода по-умолчанию */
-	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay, meta = (ToolTip = "Пользовательский конфиг. ввода по-умолчанию"))
-	UPlayerMappableInputConfig* PlayerDefaultInputConfig;
-
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()
 	float MaxPeekSlowDown;
@@ -109,6 +105,10 @@ protected:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	/** Инициализация привязок клавиш
+	 * @return TRUE - Если инициализация выполнена успешно
+	 */
+	bool InitInputMappings() const;
 	virtual void PawnClientRestart() override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;

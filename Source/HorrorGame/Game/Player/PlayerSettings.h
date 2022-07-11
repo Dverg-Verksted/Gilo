@@ -74,6 +74,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName = "Восстановление выносливости", meta = (ToolTip = "Темп восстановления выносливости"))
 	float StaminaRestoreRate;
 
+	/* Привязка клавиш клавиатуры */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление",
+		meta = (ToolTip = "Конфиг. привязки клавиш клавиатуры по-умолчанию", AllowedClasses = "PlayerMappableInputConfig"))
+	FSoftObjectPath DefaultKeyboardMapping;
+
 	static FORCEINLINE const UPlayerSettings* Get()
 	{
 		const UPlayerSettings* Settings = GetDefault<UPlayerSettings>();
