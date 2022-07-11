@@ -1,11 +1,8 @@
 ﻿// It is owned by the company Dverg Verksted.
 
-
 #include "Game/Player/WalkCameraShakeComponent.h"
-
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 
 UWalkCameraShakeComponent::UWalkCameraShakeComponent()
 {
@@ -13,33 +10,33 @@ UWalkCameraShakeComponent::UWalkCameraShakeComponent()
 	CurrentCameraShake = nullptr;
 }
 
-
 void UWalkCameraShakeComponent::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void UWalkCameraShakeComponent::ToggleMoveAction(bool bMoveActionEnabled)
+{
+	bMoveInputActive = bMoveActionEnabled;
 }
 
 void UWalkCameraShakeComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!IsActive())
-		return;
+	if (!IsActive()) return;
 
-	if (const auto* Pawn = Cast<ACharacter>(GetOwner()))
+	const auto* Pawn = Cast<ACharacter>(GetOwner());
+	if (Pawn && Pawn->GetCharacterMovement()->IsFalling())
 	{
-		if (Pawn->GetCharacterMovement()->IsFalling())
+		if (bCameraShakeActive)
 		{
-			if (bCameraShakeActive)
-			{
-				StopCameraShake();
-			}
-			return;
+			StopCameraShake();
 		}
+		return;
 	}
 
-	const FVector Velocity = GetOwner()->GetVelocity();
-	const bool bMoving = Velocity.Size() != 0.f;
+	const bool bMoving = bMoveInputActive;
 
 	if (!bMoving && (CameraMoveState != Idle || !bCameraShakeActive))
 	{

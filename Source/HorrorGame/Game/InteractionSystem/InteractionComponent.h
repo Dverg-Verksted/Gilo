@@ -8,9 +8,8 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "InteractionComponent.generated.h"
 
-
 /* Компонент для поиска и взаимодействия с интерактивными объектами */
-UCLASS(BlueprintType, NotBlueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(BlueprintType, NotBlueprintable, ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class HORRORGAME_API UInteractionComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -20,48 +19,72 @@ public:
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionObjectChangedEvent, AActor*, Actor, FHitResult, Hit);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHoverBeginEvent, AActor*, Actor, FHitResult, Hit);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHoverEndEvent, AActor*, Actor);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionTargetLockEvent, AActor*, LockTarget);
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteractionTargetUnlockEvent, AActor*, UnlockedTarget);
+
 	/* Интервал таймера трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceTimerInterval = 0.1f;
 
 	/* Дистанция трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceDistance;
 
 	/* Радиус сферы трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float TraceRadius;
 
 	/* Дистанция удерживания объекта от игрока */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float GrabDistance = 100.0f;
 
 	/* Сила швыряния схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	float PushGrabbedForce = 2000.0f;
 
 	/* Типы объектов для трассировки */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Trace")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Trace")
 	TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 
 	/* Изменился текущий интерактивный объект */
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
 	FOnInteractionObjectChangedEvent OnInteractionObjectChanged;
 
+	/* Навели прицел на интерактивный объект */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnHoverBeginEvent OnHoverBegin;
+
+	/* Убрали прицел с интерактивного объекта */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnHoverEndEvent OnHoverEnd;
+
+	/* Трассировщик заблокирован на акторе */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionTargetLockEvent OnInteractionTargetLock;
+
+	/* Трассировщик разблокирован */
+	UPROPERTY(BlueprintAssignable, Category = "Interaction|Events")
+	FOnInteractionTargetUnlockEvent OnInteractionTargetUnlock;
+
 	/* Действие использования предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> UseAction;
 
 	/* Действие хватания предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabAction;
 
 	/* Действие швыряния схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> PushGrabbedAction;
 
 	/* Действие вращение схваченного предмета */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabbedRotationAction;
 
 protected:
@@ -92,6 +115,13 @@ protected:
 	/* TRUE - Если уже затриггерилось действие удерживания объекта */
 	bool bGrabTriggered = false;
 
+	/* TRUE - Если трассировщик заблокирован на объекте */
+	bool bIsLocked = false;
+
+	/* Актор, на котором заблокирован трассировщик */
+	UPROPERTY()
+	TObjectPtr<AActor> LockTargetActor;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -103,7 +133,7 @@ protected:
 	void OnTraceTimerTick();
 
 	/* Выбор нового интерактивного объекта */
-	void SelectNewInteractionObject(const FHitResult& Hit);
+	void SelectNewInteractionObject(const FHitResult& Hit, AActor* Actor);
 
 	/* Очистка информации о последнем интерактивном объекте */
 	void ClearLastInteractionObject();
@@ -139,10 +169,23 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/* Включение поиска интерактивных объектов */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void StartTrace();
 
 	/* Отключение поиска интерактивных объектов */
-	UFUNCTION(BlueprintCallable, Category="Trace")
+	UFUNCTION(BlueprintCallable, Category = "Trace")
 	void StopTrace();
+
+	/* Блокировка трассировщика на акторе */
+	UFUNCTION(BlueprintCallable, Category = "Trace")
+	void LockOnTarget(AActor* Actor);
+
+	/* Отмена блокировки трассировщика */
+	UFUNCTION(BlueprintCallable, Category = "Trace")
+	void ClearTargetLock();
+
+	/* Возвращает актор, на котором заблокирован трассировщик */
+	FORCEINLINE const AActor* GetLockedActor() const { return LockTargetActor.Get(); }
+
+	static UInteractionComponent* Get(const APlayerController* PlayerController);
 };

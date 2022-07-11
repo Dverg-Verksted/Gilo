@@ -1,8 +1,6 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/Common/AutoDiscoveryAsset.h"
-
 #include "AssetMetaRegistrySource.h"
 #include "Misc/MessageDialog.h"
 
@@ -18,8 +16,9 @@ void UAutoDiscoveryAsset::PostEditChangeProperty(FPropertyChangedEvent& Property
 {
 	// Проверяем имя ассета на уникальность
 	Super::PostEditChangeProperty(PropertyChangedEvent);
-	if (PropertyChangedEvent.Property && PropertyChangedEvent.Property->GetFName() ==
-		GET_MEMBER_NAME_CHECKED(UAutoDiscoveryAsset, AssetName))
+	if (!PropertyChangedEvent.Property) return;
+
+	if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UAutoDiscoveryAsset, AssetName))
 	{
 		const FName NewVal = AssetName;
 		if (PropertyChangedEvent.ChangeType == EPropertyChangeType::ValueSet && NewVal != NAME_None)
@@ -28,9 +27,7 @@ void UAutoDiscoveryAsset::PostEditChangeProperty(FPropertyChangedEvent& Property
 			FName ExistsPath = NAME_None;
 			if (UAssetMetaRegistrySource::IsAssetWithNameExists(CurrentPath, NewVal, ExistsPath))
 			{
-				const FText ErrorMessage = FText::Format(
-					LOCTEXT("AssetNameAlreadyExists", "Ассет с таким именем уже существует: '{0}'."),
-					FText::FromName(ExistsPath));
+				const FText ErrorMessage = FText::Format(LOCTEXT("AssetNameAlreadyExists", "Ассет с таким именем уже существует: '{0}'."), FText::FromName(ExistsPath));
 				const FText Caption = FText(LOCTEXT("AssetNameAlreadyExists", "Неверное имя ассета"));
 				FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, &Caption);
 				AssetName = NAME_None;

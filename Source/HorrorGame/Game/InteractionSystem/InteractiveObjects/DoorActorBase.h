@@ -13,10 +13,7 @@
 
 /* Базовый класс для дверей */
 UCLASS()
-class HORRORGAME_API ADoorActorBase
-	: public AActor,
-	  public IInteractiveObject,
-	  public IGameplayTagAssetInterface
+class HORRORGAME_API ADoorActorBase : public AActor, public IInteractiveObject, public IGameplayTagAssetInterface
 {
 	GENERATED_BODY()
 
@@ -31,38 +28,40 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> DoorMeshComponent;
-	
+
 	/* Дата Ассет текущей двери */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Door")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
 	FDataRegistryId DoorID;
 
 	/* Минимальный угол открытия двери */
-	UPROPERTY(EditDefaultsOnly, Category="Door")
+	UPROPERTY(EditDefaultsOnly, Category = "Door")
 	float MinDoorAngle = 0.0f;
 
 	/* Максимальный угол открытия двери */
-	UPROPERTY(EditDefaultsOnly, Category="Door")
+	UPROPERTY(EditDefaultsOnly, Category = "Door")
 	float MaxDoorAngle = 90.0f;
 
 	/* Коэффициент открытия */
-	UPROPERTY(EditDefaultsOnly, Category="Door")
+	UPROPERTY(EditDefaultsOnly, Category = "Door")
 	float DragMagnitude = 10.0f;
 
-
 	/* Действие открытия двери */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> DoorDragAction;
 
+	/* Продолжительное действие */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> GrabObjectAction;
+
 	/* Контекст действий с дверью */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DoorInputContext;
 
 	/* Приоритет контекста управления дверью */
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	int32 DoorInputContextPriority = 10;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags",
-		Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
 
 protected:
@@ -76,10 +75,13 @@ protected:
 	void ReloadDoorAsset();
 
 	UFUNCTION()
-	void DoorDragActionHandler(const FInputActionValue& ActionValue);
+	void GrabObjectTriggeredHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
-	void DoorDragStopActionHandler(const FInputActionValue& ActionValue);
+	void GrabObjectCompletedHandler(const FInputActionValue& ActionValue);
+
+	UFUNCTION()
+	void DoorDragActionHandler(const FInputActionValue& ActionValue);
 
 	UFUNCTION()
 	void OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID);
@@ -97,12 +99,10 @@ public:
 	virtual void OnHoverEnd_Implementation(APlayerController* PlayerController) override;
 	// Interactive object interface END
 
-	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override
-	{
-		TagContainer = GameplayTags;
-	}
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
 
 	virtual void Tick(float DeltaTime) override;
+
 private:
 	/* TRUE - Если уже привязались к вводу */
 	bool bInputBinded = false;

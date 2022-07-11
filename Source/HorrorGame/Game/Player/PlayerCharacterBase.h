@@ -14,6 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "PlayerMappableInputConfig.h"
 #include "PlayerCharacterBase.generated.h"
 
 /** Состояние наклона персонажа */
@@ -51,41 +52,33 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandleComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags",
-		Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
-	FTransform CameraDefaultTransform;
-
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FVector PeekLeftOffset;
 
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FVector PeekRightOffset;
 
-	UPROPERTY(EditDefaultsOnly, Category="Camera")
+	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	float PeekRotation;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> PeekAction;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> CrouchAction;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input", AdvancedDisplay)
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> SprintAction;
-
-	UPROPERTY(EditDefaultsOnly, Category="Input", meta=(ToolTip="Контекст ввода по-умолчанию"),
-		AdvancedDisplay)
-	TObjectPtr<UInputMappingContext> DefaultInputContext;
 
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()
@@ -111,31 +104,37 @@ protected:
 	APlayerController* PlayerController;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-
 	virtual void BeginPlay() override;
-
+	/** Инициализация привязок клавиш
+	 * @return TRUE - Если инициализация выполнена успешно
+	 */
+	bool InitInputMappings() const;
 	virtual void PawnClientRestart() override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 public:
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override
-	{
-		TagContainer = GameplayTags;
-	}
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
 
 private:
+	/* Трансформ камеры по-умолчанию */
+	FTransform CameraDefaultTransform;
+
 	FVectorSpringState CameraInterpSpringState;
+
+	/** TRUE - Если нажаты клавиши движения */
+	bool bMoveInputActive = false;
 
 	/** Текущая альфа наклона От 0 до 1 */
 	float PeekAlpha;
 
-	/* Требуемое положение камеры */
-	FVector DesiredCameraLocation;
+	/* Текущее значение смещения камеры в приседе */
+	FVector CameraCrouchOffset;
+
+	/* Текущее значение смещения камеры в наклоне */
+	FVector CameraPeekOffset;
 
 	/** Обработчик начала ходьбы */
 	UFUNCTION()

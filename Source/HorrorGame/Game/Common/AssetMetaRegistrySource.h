@@ -7,18 +7,16 @@
 #include "Engine/DataTable.h"
 #include "AssetMetaRegistrySource.generated.h"
 
-USTRUCT(BlueprintType, DisplayName="Asset MetaData Registry Row")
+USTRUCT(BlueprintType, DisplayName = "Asset MetaData Registry Row")
 struct HORRORGAME_API FAssetMetaRegistryRow : public FTableRowBase
 {
 	GENERATED_USTRUCT_BODY()
 
-	FAssetMetaRegistryRow()
-	{
-	}
+	FAssetMetaRegistryRow() {}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPrimaryAssetId AssetID;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FSoftObjectPath AssetPath;
 };
@@ -27,7 +25,7 @@ struct HORRORGAME_API FAssetMetaRegistryRow : public FTableRowBase
  * Автоматически наполняемый источник данных для регистра
  * Ищет подходящие ассеты
  */
-UCLASS(DisplayName="Asset MetaData Source")
+UCLASS(DisplayName = "Asset MetaData Source")
 class HORRORGAME_API UAssetMetaRegistrySource : public UDataRegistrySource
 {
 	GENERATED_BODY()
@@ -43,6 +41,7 @@ public:
 	inline static const FName AssetUniqueNameTag = "AssetUniqueName";
 
 	static bool IsAssetWithNameExists(const FName& Path, const FName& CheckName, FName& ExistsPath);
+
 protected:
 	/** Callback registered when an asset search root as been added post launch */
 	virtual void OnNewAssetSearchRoot(const FString& SearchRoot);
@@ -54,12 +53,12 @@ protected:
 	virtual void RefreshRuntimeSources() override;
 	virtual void GetResolvedNames(TArray<FName>& Names) const override;
 	virtual EDataRegistryAvailability GetSourceAvailability() const override;
-	virtual EDataRegistryAvailability GetItemAvailability(const FName& ResolvedName,
-		const uint8** PrecachedDataPtr) const override;
+	virtual EDataRegistryAvailability GetItemAvailability(const FName& ResolvedName, const uint8** PrecachedDataPtr) const override;
 	virtual FString GetDebugString() const override;
 	virtual bool AcquireItem(FDataRegistrySourceAcquireRequest&& Request) override;
 
-	/** Returns true if this asset data passes the filter for this meta source, bNewRegisteredAsset is true if it comes from a RegisterSpecificAsset call and needs extra path checking */
+	/** Returns true if this asset data passes the filter for this meta source, bNewRegisteredAsset is true if it comes from a
+	 * RegisterSpecificAsset call and needs extra path checking */
 	virtual bool DoesAssetPassFilter(const FAssetData& AssetData, bool bNewRegisteredAsset);
 
 	/** Tells it to go through each pending acquire */
@@ -76,6 +75,7 @@ protected:
 
 	/** List of requests to resolve when table is loaded */
 	TArray<FDataRegistrySourceAcquireRequest> PendingAcquires;
+
 private:
 	static uint8* AllocateItemMemory(const UScriptStruct* ItemStruct);
 };

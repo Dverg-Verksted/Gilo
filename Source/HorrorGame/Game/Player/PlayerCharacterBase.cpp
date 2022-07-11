@@ -5,9 +5,10 @@
 #include "PlayerSettings.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Game/Settings/HorrorSettingsLocal.h"
+#include "Game/System/HorrorAssetManager.h"
 
-APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	StrafeMoveMagnitude = 0.75f;
@@ -16,9 +17,12 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	PeekAlpha = 0.0f;
 	PeekState = Default;
 
-	PeekLeftOffset = FVector(0.0f, -15.0f, 60.0f);
-	PeekRightOffset = FVector(0.0f, 15.0f, 60.0f);
+	PeekLeftOffset = FVector(0.0f, -15.0f, -12.0f);
+	PeekRightOffset = FVector(0.0f, 15.0f, -12.0f);
 	PeekRotation = 20.0f;
+
+	CameraCrouchOffset = FVector::ZeroVector;
+	CameraPeekOffset = FVector::ZeroVector;
 
 	PlayerController = nullptr;
 
@@ -49,7 +53,6 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	MainCameraBoom->SetRelativeTransform(CameraDefaultTransform);
 }
 
 void APlayerCharacterBase::BeginPlay()
@@ -82,7 +85,38 @@ void APlayerCharacterBase::BeginPlay()
 		StrafeMoveMagnitude = PlayerSettings->StrafeMoveMagnitude;
 		BackMoveMagnitude = PlayerSettings->BackMoveMagnitude;
 	}
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation();
+	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
+}
+
+bool APlayerCharacterBase::InitInputMappings() const
+{
+	// TODO Вынести в специализированный InputComponent
+	if (!PlayerController) return false;
+
+	auto* GameSettings = UHorrorSettingsLocal::Get();
+	ensure(GameSettings);
+	if (!GameSettings) return false;
+
+	auto* PlayerSettings = UPlayerSettings::Get();
+	ensure(PlayerSettings);
+	if (!PlayerSettings) return false;
+
+	const auto* AssetManager = UHorrorAssetManager::Get();
+	ensure(AssetManager);
+	if (!AssetManager) return false;
+
+	if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+	{
+		Subsystem->ClearAllMappings();
+		bool bInitialized = false;
+		for (const auto& Setup : PlayerSettings->InputSetups)
+		{
+			GameSettings->AddInputSetup(Setup, Subsystem);
+			bInitialized = true;
+		}
+		return bInitialized;
+	}
+	return false;
 }
 
 void APlayerCharacterBase::PawnClientRestart()
@@ -90,30 +124,23 @@ void APlayerCharacterBase::PawnClientRestart()
 	Super::PawnClientRestart();
 	InteractionComponent->StopTrace();
 	PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
+	if (InitInputMappings())
 	{
-		if (auto* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->ClearAllMappings();
-			if (DefaultInputContext)
-				Subsystem->AddMappingContext(DefaultInputContext, 0);
-			
-			InteractionComponent->OnPlayerReady();
-			InteractionComponent->StartTrace();
-		}
+		InteractionComponent->OnPlayerReady();
+		InteractionComponent->StartTrace();
 	}
 }
 
 void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnStartCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() + FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
+	CameraCrouchOffset = FVector(0.0f, 0.0f, -ScaledHalfHeightAdjust);
 }
 
 void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
-	DesiredCameraLocation = CameraDefaultTransform.GetLocation() - FVector(0.0f, 0.0f, ScaledHalfHeightAdjust);
+	CameraCrouchOffset = FVector::ZeroVector;
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -121,55 +148,56 @@ void APlayerCharacterBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	PeekTimeline.TickTimeline(DeltaTime);
 
+	FVector DesiredCameraLocation = CameraDefaultTransform.GetLocation();
+	DesiredCameraLocation += CameraCrouchOffset;
+	DesiredCameraLocation += CameraPeekOffset;
+
 	// Секси плавная интерполяция камеры
-	DesiredCameraLocation = UKismetMathLibrary::VectorSpringInterp(DesiredCameraLocation, CameraDefaultTransform.GetLocation(),
-		CameraInterpSpringState,
-		240.0f, 0.8f, DeltaTime, 6.2f);
-	MainCameraBoom->SetRelativeLocation(DesiredCameraLocation);
+	const FVector ResultCameraLocation = UKismetMathLibrary::VectorSpringInterp(MainCameraBoom->GetRelativeLocation(), DesiredCameraLocation, CameraInterpSpringState, 800.0f, 0.85f, DeltaTime, 6.2f);
+	MainCameraBoom->SetRelativeLocation(ResultCameraLocation);
 }
 
 void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	auto* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	ensure(PlayerEnhancedInputComponent);
 
-	if (auto* PlayerEnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	if (!PlayerEnhancedInputComponent) return;
+
+	if (MoveAction)
 	{
-		if (MoveAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this,
-				&APlayerCharacterBase::MoveStartActionHandler);
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
-			PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this,
-				&APlayerCharacterBase::MoveStopActionHandler);
-		}
-		if (LookAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::LookActionHandler);
-		}
-		if (PeekAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Started, this, &APlayerCharacterBase::PeekActionHandler);
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::PeekActionHandler);
-			PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::PeekStopHandler);
-		}
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &APlayerCharacterBase::MoveStartActionHandler);
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::MoveActionHandler);
+		PlayerEnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::MoveStopActionHandler);
+	}
+	if (LookAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::LookActionHandler);
+	}
+	if (PeekAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Started, this, &APlayerCharacterBase::PeekActionHandler);
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::PeekActionHandler);
+		PlayerEnhancedInputComponent->BindAction(PeekAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::PeekStopHandler);
+	}
 
-		if (CrouchAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this,
-				&APlayerCharacterBase::CrouchActionHandler);
-		}
+	if (CrouchAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &APlayerCharacterBase::CrouchActionHandler);
+	}
 
-		if (SprintAction)
-		{
-			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
-			PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this,
-				&APlayerCharacterBase::SprintStopHandler);
-		}
+	if (SprintAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
+		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::SprintStopHandler);
 	}
 }
 
 void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
 {
+	PlayerSprintComponent->ToggleMoveActionInput(true);
+	WalkCameraShakeComponent->ToggleMoveAction(true);
 }
 
 void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValue)
@@ -189,19 +217,30 @@ void APlayerCharacterBase::MoveActionHandler(const FInputActionValue& ActionValu
 		InputAxis.Y = InputAxis.Y * (1.0f - PeekSlowDownAmount);
 	}
 
-	AddMovementInput(GetActorForwardVector(), InputAxis.X);
-	AddMovementInput(GetActorRightVector(), InputAxis.Y);
+	if (InputAxis.X != 0.0f)
+	{
+		AddMovementInput(GetActorForwardVector(), InputAxis.X);
+		bMoveInputActive = true;
+	}
+	if (InputAxis.Y != 0.0f)
+	{
+		AddMovementInput(GetActorRightVector(), InputAxis.Y);
+		bMoveInputActive = true;
+	}
 }
 
 void APlayerCharacterBase::MoveStopActionHandler(const FInputActionValue& ActionValue)
 {
+	bMoveInputActive = false;
+	PlayerSprintComponent->ToggleMoveActionInput(false);
+	WalkCameraShakeComponent->ToggleMoveAction(false);
 }
 
 void APlayerCharacterBase::LookActionHandler(const FInputActionValue& ActionValue)
 {
 	const FVector InputAxis = ActionValue.Get<FVector>();
-	AddControllerPitchInput(InputAxis.Y);
-	AddControllerYawInput(InputAxis.X);
+	if (InputAxis.Y != 0.0f) AddControllerPitchInput(InputAxis.Y);
+	if (InputAxis.X != 0.0f) AddControllerYawInput(InputAxis.X);
 }
 
 void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValue)
@@ -209,13 +248,11 @@ void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValu
 	const float Magnitude = ActionValue.Get<float>();
 	if (Magnitude > 0)
 	{
-		if (PeekState == PeekLeft)
-			return;
+		if (PeekState == PeekLeft) return;
 	}
 	else if (Magnitude < 0)
 	{
-		if (PeekState == PeekRight)
-			return;
+		if (PeekState == PeekRight) return;
 	}
 
 	if (PeekState == Default)
@@ -225,29 +262,25 @@ void APlayerCharacterBase::PeekActionHandler(const FInputActionValue& ActionValu
 	}
 	else
 	{
-		if (PeekTimeline.IsReversing())
-			PeekTimeline.Play();
+		if (PeekTimeline.IsReversing()) PeekTimeline.Play();
 	}
 }
 
 void APlayerCharacterBase::PeekStopHandler(const FInputActionValue& ActionValue)
 {
-	if (PeekState != Default)
-		PeekTimeline.Reverse();
+	if (PeekState != Default) PeekTimeline.Reverse();
 }
 
 void APlayerCharacterBase::PeekTimelineProgress(float Value)
 {
-	if (PeekState == Default)
-		return;
+	if (PeekState == Default) return;
 
 	PeekAlpha = Value;
 
-	const FVector PeekLocation = PeekState == PeekRight ? PeekRightOffset : PeekLeftOffset;
-	const FVector TargetLocation = PeekLocation;
-	const FVector StartLocation = CameraDefaultTransform.GetLocation();
-	const FVector CameraLocation = FMath::Lerp(StartLocation, TargetLocation, Value);
-	MainCameraBoom->SetRelativeLocation(CameraLocation);
+	const FVector PeekOffset = PeekState == PeekRight ? PeekRightOffset : PeekLeftOffset;
+	const FVector CameraLocation = FMath::Lerp(FVector::ZeroVector, PeekOffset, Value);
+
+	CameraPeekOffset = CameraLocation;
 
 	if (auto* PC = Cast<APlayerController>(GetController()))
 	{

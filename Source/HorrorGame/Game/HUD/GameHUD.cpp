@@ -18,15 +18,13 @@ void AGameHUD::DrawHUD()
 		// AddBool(TEXT("Test function AddBool"), true);
 		if (const auto* PlayerPawn = PlayerOwner->GetPawn())
 		{
-			if (const auto* SprintComponent = Cast<UPlayerSprintComponent>(
-				PlayerPawn->GetComponentByClass(UPlayerSprintComponent::StaticClass())))
+			if (const auto* SprintComponent = Cast<UPlayerSprintComponent>(PlayerPawn->GetComponentByClass(UPlayerSprintComponent::StaticClass())))
 			{
 				AddFloat(TEXT("Выносливость:"), SprintComponent->CurrentStamina);
 				AddFloat(TEXT("Скорость:"), PlayerPawn->GetVelocity().Length());
 			}
 
-			if (const auto* Interaction = Cast<
-				UInteractionComponent>(PlayerPawn->GetComponentByClass(UInteractionComponent::StaticClass())))
+			if (const auto* Interaction = Cast<UInteractionComponent>(PlayerPawn->GetComponentByClass(UInteractionComponent::StaticClass())))
 			{
 				FString Msg = TEXT("Нет");
 				if (const auto* CurrentActor = Interaction->GetCurrentInteractiveObject())
