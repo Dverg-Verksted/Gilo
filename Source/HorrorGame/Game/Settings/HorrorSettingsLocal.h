@@ -56,6 +56,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Settings|Input")
 	static void GetInputCategories(const APlayerController* PlayerController, ECommonInputType Type, TArray<FHorrorInputCategory>& Categories);
 
+	/** Возвращает клавишу, привязанную к заданному действию
+	 * @param ActionName Имя действия
+	 * @param bSuccess TRUE - Если к действию привязана клавиша
+	 * @param Key Привязанная клавиша
+	 * @param KeyName Наименование клавиши
+	 */
+	UFUNCTION(BlueprintPure, Category = "Settings|Input")
+	static void GetActionMappedKey(FName ActionName, bool& bSuccess, FKey& Key, FText& KeyName);
+
 private:
 	/** Коллекция загруженных конфигурация привязок клавиш */
 	UPROPERTY(VisibleAnywhere)

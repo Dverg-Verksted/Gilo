@@ -2,10 +2,13 @@
 
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "EnhancedInputSubsystems.h"
+#include "InputMappingContext.h"
 #include "Game/Player/PlayerSettings.h"
 #include "Game/System/HorrorAssetManager.h"
 
-UHorrorSettingsLocal::UHorrorSettingsLocal() {}
+UHorrorSettingsLocal::UHorrorSettingsLocal()
+{
+}
 
 UHorrorSettingsLocal* UHorrorSettingsLocal::Get()
 {
@@ -137,5 +140,35 @@ void UHorrorSettingsLocal::GetInputCategories(const APlayerController* PlayerCon
 			NewBinding.Key = *CustomKey;
 		}
 		Category->Bindings.Add(NewBinding);
+	}
+}
+
+void UHorrorSettingsLocal::GetActionMappedKey(FName ActionName, bool& bSuccess, FKey& Key, FText& KeyName)
+{
+	bSuccess = false;
+
+	const auto* GameSettings = Get();
+	ensure(GameSettings);
+	if (!GameSettings) return;
+
+	if (auto* CustomKey = GameSettings->CustomKeyboardConfig.Find(ActionName))
+	{
+		bSuccess = true;
+		Key = *CustomKey;
+		KeyName = Key.GetDisplayName();
+		return;
+	}
+
+	for (const auto& Setup : GameSettings->LoadedInputConfigs)
+	{
+		for (const auto& KeyMap : Setup.Config->GetPlayerMappableKeys())
+		{
+			if (!KeyMap.bIsPlayerMappable || KeyMap.PlayerMappableOptions.Name != ActionName) continue;
+
+			bSuccess = true;
+			Key = KeyMap.Key;
+			KeyName = Key.GetDisplayName();
+			return;
+		}
 	}
 }
