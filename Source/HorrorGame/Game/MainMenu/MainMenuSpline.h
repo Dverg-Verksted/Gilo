@@ -26,9 +26,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	USplineComponent* SplineComponent;
+	TObjectPtr<USplineComponent> SplineComponent;
 	UPROPERTY(EditAnywhere, Category = "Timeline")
-	UCurveFloat* CurveFloat;
+	TObjectPtr<UCurveFloat> CurveFloat;
 
 	UFUNCTION()
 	void GoForSpline(bool IsOpen);
@@ -42,8 +42,8 @@ protected:
 
 public:	
 	
-	bool Open; //приехала карта или нет
-	bool ReadyState; 
+	bool bOpen; //приехала карта или нет
+	bool bReadyState; 
 	float MoveValue; // на сколько пододвинуть за тик
 	float CurveFloatValue; //текущее значение кривой
 	float TimelineValue;

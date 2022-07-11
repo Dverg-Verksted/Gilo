@@ -30,11 +30,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	UCameraComponent* CameraComponent;
+	TObjectPtr<UCameraComponent> CameraComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMeshComponent* CardMesh;
+	TObjectPtr<UStaticMeshComponent> CardMesh;
 	UPROPERTY(EditAnywhere, Category = "Timeline")
-	UCurveFloat* CurveFloat;
+	TObjectPtr<UCurveFloat> CurveFloat;
 	
 	
 
@@ -53,8 +53,8 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-	bool Open;
-	bool ReadyState;
+	bool bOpen;
+	bool bReadyState;
 	float RotateValue;
 	float CurveFloatValue;
 	float TimelineValue;

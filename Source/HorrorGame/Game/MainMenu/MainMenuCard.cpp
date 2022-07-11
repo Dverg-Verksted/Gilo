@@ -7,10 +7,8 @@
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
 
-// Sets default values
 AMainMenuCard::AMainMenuCard()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
 	SceneRoot = CreateDefaultSubobject<USceneComponent>("SceneRoot");
@@ -24,25 +22,26 @@ AMainMenuCard::AMainMenuCard()
 
 	OnClicked.AddUniqueDynamic(this, &AMainMenuCard::OnSelected);
 
-	Open = false;
-	ReadyState = true;
+	bOpen = false;
+	bReadyState = true;
 }
+//Запуск поворота карты по таймлайну FromStart- карта выезжает Revers - уезжает
 void AMainMenuCard::ToggleCard()
 {
-	if (ReadyState)
+	if (bReadyState)
 	{
-		Open = !Open;
+		bOpen = !bOpen;
 		CardRotation = CardMesh->GetRelativeRotation();
-		if (Open)
+		if (bOpen)
 		{
 			RotateValue = 1.0f;
-			ReadyState = false;
+			bReadyState = false;
 			MyTimeLine.PlayFromStart();
 			//сюда функция приближения камеры
 		}
 		else
 		{
-			ReadyState = false;
+			bReadyState = false;
 			MyTimeLine.Reverse();
 
 			//сюда функция возврата камеры
@@ -51,7 +50,7 @@ void AMainMenuCard::ToggleCard()
 	}
 		
 }
-
+//Установка вращения карты относительно значений timeline
 void AMainMenuCard::ControlCard() 
 {
 	TimelineValue = MyTimeLine.GetPlaybackPosition();
@@ -60,13 +59,11 @@ void AMainMenuCard::ControlCard()
 	FQuat NewRotation = FQuat(FRotator(CurveFloatValue,0.0f, 0.0f));
 	CardMesh->SetRelativeRotation(NewRotation);
 }
-
+//Установка текущего значения готовности к использованию карты
 void AMainMenuCard::SetState() 
 {
-	ReadyState = true;
+	bReadyState = true;
 }
-
-
 
 void AMainMenuCard::OnSelected(AActor* Target, FKey ButtonPressed)
 {
@@ -74,7 +71,7 @@ void AMainMenuCard::OnSelected(AActor* Target, FKey ButtonPressed)
 	ToggleCard();
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, FString("flip"));
 }
-// Called when the game starts or when spawned
+
 void AMainMenuCard::BeginPlay()
 {
 	Super::BeginPlay();
@@ -93,7 +90,6 @@ void AMainMenuCard::BeginPlay()
 	}
 }
 
-// Called every frame
 void AMainMenuCard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

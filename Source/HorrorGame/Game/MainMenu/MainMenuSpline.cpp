@@ -4,10 +4,8 @@
 #include "Game/MainMenu/MainMenuSpline.h"
 #include "Components/SplineComponent.h"
 
-// Sets default values
 AMainMenuSpline::AMainMenuSpline()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	
 	SceneRoot = CreateDefaultSubobject<USceneComponent>("SceneRoot");
@@ -16,36 +14,35 @@ AMainMenuSpline::AMainMenuSpline()
 	SplineComponent = CreateDefaultSubobject<USplineComponent>("SplineComponent");
 	SplineComponent->SetupAttachment(GetRootComponent());
 
-	Open = false;
-	ReadyState = true;
+	bOpen = false;
+	bReadyState = true;
 }
-
+//Запуск движения по сплайну карты по таймлайну FromStart- карта выезжает Revers - уезжает
 void AMainMenuSpline::GoForSpline(bool IsOpen) 
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString("OnClick"));
-	if (ReadyState)
+	if (bReadyState)
 	{
-		Open = !Open;
-		//CardRotation = CardMesh->GetRelativeRotation();
-		if (Open)
+		bOpen = !bOpen;
+		if (bOpen)
 		{
 			MoveValue = 1.0f;
-			ReadyState = false;
+			bReadyState = false;
 			MyTimeLine.PlayFromStart();
 		}
 		else
 		{
-			ReadyState = false;
+			bReadyState = false;
 			MyTimeLine.Reverse();
 		}
 	}
 }
-
+//Установка текущего значения готовности к передвижению по сплайну
 void AMainMenuSpline::SetState() 
 {
-	ReadyState = true;
+	bReadyState = true;
 }
-
+//Установка перемещения карты по timeline относительно значений timeline
 void AMainMenuSpline::ControlCard() 
 {
 	TimelineValue = MyTimeLine.GetPlaybackPosition();
@@ -63,7 +60,6 @@ void AMainMenuSpline::ControlCard()
 	CardRef->SetActorTransform(NewTransform);
 }
 
-// Called when the game starts or when spawned
 void AMainMenuSpline::BeginPlay()
 {
 	AMainMenuCard* OnClickedCard = Cast<AMainMenuCard>(CardRef);
@@ -88,7 +84,6 @@ void AMainMenuSpline::BeginPlay()
 	
 }
 
-// Called every frame
 void AMainMenuSpline::Tick(float DeltaTime)
 {
 	MyTimeLine.TickTimeline(DeltaTime);
