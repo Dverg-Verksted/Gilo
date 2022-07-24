@@ -18,7 +18,7 @@ AMainMenuCard::AMainMenuCard()
 	CardMesh = CreateDefaultSubobject<UStaticMeshComponent>("CardMesh");
 	CardMesh->SetupAttachment(GetRootComponent());
 
-	MainCamera = CreateAbstractDefaultSubobject<UCameraComponent>("MainCamera");
+	MainCamera = CreateDefaultSubobject<UCameraComponent>("MainCamera");
 	MainCamera->SetupAttachment(GetRootComponent());
 
 	OnClicked.AddUniqueDynamic(this, &AMainMenuCard::OnSelected);
@@ -86,27 +86,25 @@ void AMainMenuCard::OnSelected(AActor* Target, FKey ButtonPressed)
 
 void AMainMenuCard::BeginPlay()
 {
-	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	Super::BeginPlay();
+	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	RotateValue = 1.0f;
 
-	if (CurveFloat)
-	{
-		FOnTimelineFloat TimelimeCallback;
-		FOnTimelineEventStatic TimelineFinishedCallback;
+	if (!CurveFloat) return;
 
-		TimelimeCallback.BindUFunction(this, FName("ControlCard"));
-		TimelineFinishedCallback.BindUFunction(this, FName("SetState"));
+	FOnTimelineFloat TimelimeCallback;
+	FOnTimelineEventStatic TimelineFinishedCallback;
 
-		MyTimeLine.AddInterpFloat(CurveFloat, TimelimeCallback);
-		MyTimeLine.SetTimelineFinishedFunc(TimelineFinishedCallback);
-	}
+	TimelimeCallback.BindUFunction(this, FName("ControlCard"));
+	TimelineFinishedCallback.BindUFunction(this, FName("SetState"));
+
+	MyTimeLine.AddInterpFloat(CurveFloat, TimelimeCallback);
+	MyTimeLine.SetTimelineFinishedFunc(TimelineFinishedCallback);
 }
 
 void AMainMenuCard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 	MyTimeLine.TickTimeline(DeltaTime);
 }
 

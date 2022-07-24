@@ -44,6 +44,7 @@ void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 
 void AMainMenuCameraActor::BeginPlay()
 {
+	Super::BeginPlay();
 	//получаем все экземпл€ры класса карты
 	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	for (auto* Actor : CardActors)
@@ -56,9 +57,6 @@ void AMainMenuCameraActor::BeginPlay()
 	
 	FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams();
 	GetWorld()->GetFirstPlayerController()->SetViewTarget(this, TransitionParams);
-
-	Super::BeginPlay();
-	
 }
 
 void AMainMenuCameraActor::Tick(float DeltaTime)

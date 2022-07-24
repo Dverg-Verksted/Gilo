@@ -1,4 +1,4 @@
-// It is owned by the company Dverg Verksted.
+п»ї// It is owned by the company Dverg Verksted.
 
 
 #include "Game/MainMenu/MainMenuSpline.h"
@@ -17,7 +17,7 @@ AMainMenuSpline::AMainMenuSpline()
 	bOpen = false;
 	bReadyState = true;
 }
-//Запуск движения по сплайну карты по таймлайну FromStart- карта выезжает Revers - уезжает
+//Р—Р°РїСѓСЃРє РґРІРёР¶РµРЅРёСЏ РїРѕ СЃРїР»Р°Р№РЅСѓ РєР°СЂС‚С‹ РїРѕ С‚Р°Р№РјР»Р°Р№РЅСѓ FromStart- РєР°СЂС‚Р° РІС‹РµР·Р¶Р°РµС‚ Revers - СѓРµР·Р¶Р°РµС‚
 void AMainMenuSpline::GoForSpline(bool bCardMove) 
 {
 	if (bReadyState)
@@ -36,12 +36,12 @@ void AMainMenuSpline::GoForSpline(bool bCardMove)
 		}
 	}
 }
-//Установка текущего значения готовности к передвижению по сплайну
+//РЈСЃС‚Р°РЅРѕРІРєР° С‚РµРєСѓС‰РµРіРѕ Р·РЅР°С‡РµРЅРёСЏ РіРѕС‚РѕРІРЅРѕСЃС‚Рё Рє РїРµСЂРµРґРІРёР¶РµРЅРёСЋ РїРѕ СЃРїР»Р°Р№РЅСѓ
 void AMainMenuSpline::SetState() 
 {
 	bReadyState = true;
 }
-//Установка перемещения карты по timeline относительно значений timeline
+//РЈСЃС‚Р°РЅРѕРІРєР° РїРµСЂРµРјРµС‰РµРЅРёСЏ РєР°СЂС‚С‹ РїРѕ timeline РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ Р·РЅР°С‡РµРЅРёР№ timeline
 void AMainMenuSpline::ControlCard() 
 {
 	TimelineValue = MyTimeLine.GetPlaybackPosition();
@@ -61,6 +61,7 @@ void AMainMenuSpline::ControlCard()
 
 void AMainMenuSpline::BeginPlay()
 {
+	Super::BeginPlay();
 	AMainMenuCard* OnClickedCard = Cast<AMainMenuCard>(CardRef);
 	if (OnClickedCard->IsValidLowLevel())
 	{
@@ -68,24 +69,21 @@ void AMainMenuSpline::BeginPlay()
 	}
 	MoveValue = 1.0f;
 
-	if (CurveFloat)
-	{
-		FOnTimelineFloat TimelimeCallback;
-		FOnTimelineEventStatic TimelineFinishedCallback;
+	if (!CurveFloat) return;
 
-		TimelimeCallback.BindUFunction(this, FName("ControlCard"));
-		TimelineFinishedCallback.BindUFunction(this, FName("SetState"));
+	FOnTimelineFloat TimelimeCallback;
+	FOnTimelineEventStatic TimelineFinishedCallback;
 
-		MyTimeLine.AddInterpFloat(CurveFloat, TimelimeCallback);
-		MyTimeLine.SetTimelineFinishedFunc(TimelineFinishedCallback);
-	}
-	Super::BeginPlay();
-	
+	TimelimeCallback.BindUFunction(this, FName("ControlCard"));
+	TimelineFinishedCallback.BindUFunction(this, FName("SetState"));
+
+	MyTimeLine.AddInterpFloat(CurveFloat, TimelimeCallback);
+	MyTimeLine.SetTimelineFinishedFunc(TimelineFinishedCallback);
 }
 
 void AMainMenuSpline::Tick(float DeltaTime)
 {
-	MyTimeLine.TickTimeline(DeltaTime);
 	Super::Tick(DeltaTime);
+	MyTimeLine.TickTimeline(DeltaTime);
 }
 
