@@ -9,3 +9,13 @@ AMainMenuGameMode::AMainMenuGameMode()
 	PlayerControllerClass = AMainMenuPlayerController::StaticClass();
 	
 }
+
+void AMainMenuGameMode::BeginPlay()
+{
+	
+}
+
+void AMainMenuGameMode::Tick(float DeltaTime) 
+{
+	
+}

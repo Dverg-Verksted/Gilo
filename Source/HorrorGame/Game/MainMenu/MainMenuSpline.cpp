@@ -18,9 +18,8 @@ AMainMenuSpline::AMainMenuSpline()
 	bReadyState = true;
 }
 //Запуск движения по сплайну карты по таймлайну FromStart- карта выезжает Revers - уезжает
-void AMainMenuSpline::GoForSpline(bool IsOpen) 
+void AMainMenuSpline::GoForSpline(bool bCardMove) 
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString("OnClick"));
 	if (bReadyState)
 	{
 		bOpen = !bOpen;

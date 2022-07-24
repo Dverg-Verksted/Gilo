@@ -31,7 +31,7 @@ protected:
 	TObjectPtr<UCurveFloat> CurveFloat;
 
 	UFUNCTION()
-	void GoForSpline(bool IsOpen);
+	void GoForSpline(bool bCardMove);
 	UFUNCTION()
 	void SetState();
 	UFUNCTION()

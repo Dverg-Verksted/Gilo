@@ -9,7 +9,7 @@
 #include "GameFramework/Actor.h"
 #include "MainMenuCard.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClick, bool, IsOpen);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClick,bool,bCardClick);
 
 class UCameraComponent;
 class UStaticMeshComponent;
@@ -24,30 +24,28 @@ public:
 	AMainMenuCard();
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")  // delegates to onclickevents
 	FOnClick Click;
-	
+	UFUNCTION()
+	void ToggleCard();
+	TArray<AActor*> CardActors;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
-	TObjectPtr<UCameraComponent> CameraComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 	TObjectPtr<UStaticMeshComponent> CardMesh;
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	TObjectPtr<UCurveFloat> CurveFloat;
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UCameraComponent> MainCamera;
 	
 
 	UFUNCTION()
 	void OnSelected(AActor* Target, FKey ButtonPressed);
-
 	UFUNCTION()
 	void ControlCard();
 	UFUNCTION()
 	void SetState();
-	UFUNCTION()
-	void ToggleCard();
-	
 	
 	virtual void BeginPlay() override;
 

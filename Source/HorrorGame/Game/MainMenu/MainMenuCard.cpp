@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
 #include "Components/SceneComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 
 AMainMenuCard::AMainMenuCard()
@@ -17,8 +18,8 @@ AMainMenuCard::AMainMenuCard()
 	CardMesh = CreateDefaultSubobject<UStaticMeshComponent>("CardMesh");
 	CardMesh->SetupAttachment(GetRootComponent());
 
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
-	CameraComponent->SetupAttachment(GetRootComponent());
+	MainCamera = CreateAbstractDefaultSubobject<UCameraComponent>("MainCamera");
+	MainCamera->SetupAttachment(GetRootComponent());
 
 	OnClicked.AddUniqueDynamic(this, &AMainMenuCard::OnSelected);
 
@@ -32,21 +33,19 @@ void AMainMenuCard::ToggleCard()
 	{
 		bOpen = !bOpen;
 		CardRotation = CardMesh->GetRelativeRotation();
+		Click.Broadcast(bOpen);
 		if (bOpen)
 		{
 			RotateValue = 1.0f;
 			bReadyState = false;
 			MyTimeLine.PlayFromStart();
-			//сюда функция приближения камеры
 		}
 		else
 		{
 			bReadyState = false;
 			MyTimeLine.Reverse();
-
-			//сюда функция возврата камеры
 		}
-		
+
 	}
 		
 }
@@ -64,16 +63,30 @@ void AMainMenuCard::SetState()
 {
 	bReadyState = true;
 }
-
+//Действие по клику, проверяем есть ли другие открытые карты чтобы не тыкать много карт
 void AMainMenuCard::OnSelected(AActor* Target, FKey ButtonPressed)
-{
-	Click.Broadcast(true);
-	ToggleCard();
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Cyan, FString("flip"));
+{	
+	int32 CountCards = 0;
+	if (this->bOpen)
+	{
+		ToggleCard();
+	}
+	else
+	{
+		for (auto* Actor : CardActors)
+		{
+			if (auto* CardActor = Cast<AMainMenuCard>(Actor))
+			{
+				if (CardActor->bOpen) CountCards++;
+			}
+		}
+		if (CountCards == 0) ToggleCard();
+	}
 }
 
 void AMainMenuCard::BeginPlay()
 {
+	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	Super::BeginPlay();
 	RotateValue = 1.0f;
 
