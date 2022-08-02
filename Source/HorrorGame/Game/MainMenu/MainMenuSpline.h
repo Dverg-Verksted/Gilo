@@ -15,12 +15,14 @@ UCLASS()
 class HORRORGAME_API AMainMenuSpline : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AMainMenuSpline();
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	AMainMenuCard* CardRef;
+	FOnTimelineFloat TimelimeCallback;
+	FOnTimelineEventStatic TimelineFinishedCallback;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -33,24 +35,18 @@ protected:
 	UFUNCTION()
 	void GoForSpline(bool bCardMove);
 	UFUNCTION()
-	void SetState();
-	UFUNCTION()
 	void ControlCard();
-	
 
 	virtual void BeginPlay() override;
 
-public:	
-	
-	bool bOpen; //приехала карта или нет
-	bool bReadyState; 
-	float MoveValue; // на сколько пододвинуть за тик
-	float CurveFloatValue; //текущее значение кривой
+public:
+	bool bOpen;	 //приехала карта или нет
+	float MoveValue;		// на сколько пододвинуть за тик
+	float CurveFloatValue;	//текущее значение кривой
 	float TimelineValue;
 	FRotator CardRotation;
 	FTransform NewTransform;
 	FTimeline MyTimeLine;
 
 	virtual void Tick(float DeltaTime) override;
-
 };

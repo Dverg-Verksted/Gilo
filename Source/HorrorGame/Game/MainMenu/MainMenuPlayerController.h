@@ -7,7 +7,7 @@
 #include "MainMenuPlayerController.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class HORRORGAME_API AMainMenuPlayerController : public APlayerController

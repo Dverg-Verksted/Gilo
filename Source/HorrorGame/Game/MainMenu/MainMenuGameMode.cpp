@@ -1,21 +1,13 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/MainMenu/MainMenuGameMode.h"
 #include "Game/MainMenu/MainMenuPlayerController.h"
 
-AMainMenuGameMode::AMainMenuGameMode() 
+AMainMenuGameMode::AMainMenuGameMode()
 {
 	PlayerControllerClass = AMainMenuPlayerController::StaticClass();
-	
 }
 
-void AMainMenuGameMode::BeginPlay()
-{
-	
-}
+void AMainMenuGameMode::BeginPlay() {}
 
-void AMainMenuGameMode::Tick(float DeltaTime) 
-{
-	
-}
+void AMainMenuGameMode::Tick(float DeltaTime) {}

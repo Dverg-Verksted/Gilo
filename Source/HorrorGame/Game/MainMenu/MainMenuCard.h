@@ -6,10 +6,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TimelineComponent.h"
+#include "MainMenuSpline.h"
 #include "GameFramework/Actor.h"
 #include "MainMenuCard.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClick,bool,bCardClick);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnClick, bool, bCardClick);
 
 class UCameraComponent;
 class UStaticMeshComponent;
@@ -20,16 +21,16 @@ class HORRORGAME_API AMainMenuCard : public AActor
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	AMainMenuCard();
 	UPROPERTY(BlueprintAssignable, Category = "EventDispatchers")  // delegates to onclickevents
 	FOnClick Click;
 	UFUNCTION()
 	void ToggleCard();
 	TArray<AActor*> CardActors;
+	
 
 protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
@@ -38,21 +39,18 @@ protected:
 	TObjectPtr<UCurveFloat> CurveFloat;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> MainCamera;
-	
+
 
 	UFUNCTION()
 	void OnSelected(AActor* Target, FKey ButtonPressed);
 	UFUNCTION()
 	void ControlCard();
-	UFUNCTION()
-	void SetState();
-	
+
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	virtual void Tick(float DeltaTime) override;
 	bool bOpen;
-	bool bReadyState;
 	float RotateValue;
 	float CurveFloatValue;
 	float TimelineValue;

@@ -9,13 +9,12 @@
 #include "Camera/CameraComponent.h"
 #include "MainMenuCameraActor.generated.h"
 
-
 UCLASS()
 class HORRORGAME_API AMainMenuCameraActor : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	AMainMenuCameraActor();
 
 	UPROPERTY(EditAnywhere, Category = "Card")
@@ -30,14 +29,12 @@ protected:
 	TObjectPtr<USceneComponent> SceneRoot;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UCameraComponent> CameraComponent;
-	
+
 	UFUNCTION()
 	void SetCameraMod(bool bCardMove);
-	
 
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	virtual void Tick(float DeltaTime) override;
-
 };

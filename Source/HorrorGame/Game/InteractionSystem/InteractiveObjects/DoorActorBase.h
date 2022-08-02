@@ -99,7 +99,10 @@ public:
 	virtual void OnHoverEnd_Implementation(APlayerController* PlayerController) override;
 	// Interactive object interface END
 
-	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
+	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override
+	{
+		TagContainer = GameplayTags;
+	}
 
 	virtual void Tick(float DeltaTime) override;
 

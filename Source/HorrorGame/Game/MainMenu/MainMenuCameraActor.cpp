@@ -1,11 +1,9 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/MainMenu/MainMenuCameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraModifier.h"
-
 
 AMainMenuCameraActor::AMainMenuCameraActor()
 {
@@ -19,7 +17,7 @@ AMainMenuCameraActor::AMainMenuCameraActor()
 void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 {
 	APlayerController* OurPlayer = UGameplayStatics::GetPlayerController(this, 0);
-	EViewTargetBlendFunction BlendFunc = VTBlend_EaseInOut; 
+	EViewTargetBlendFunction BlendFunc = VTBlend_EaseInOut;
 	//ищем конкретную карту на которую кликнули
 	for (auto* Actor : CardActors)
 	{
@@ -30,17 +28,14 @@ void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 	}
 	//устанавливаем фокус на объект который кликнули
 	if (bCardMove)
-	{	
-		OurPlayer->SetViewTargetWithBlend(CardRef, 2.0f, BlendFunc, 2.0f, false);	
+	{
+		OurPlayer->SetViewTargetWithBlend(CardRef, 2.0f, BlendFunc, 2.0f, false);
 	}
 	else
 	{
 		OurPlayer->SetViewTargetWithBlend(this, 2.0f, BlendFunc, 2.0f, false);
 	}
-		
 }
-
-
 
 void AMainMenuCameraActor::BeginPlay()
 {
@@ -54,7 +49,7 @@ void AMainMenuCameraActor::BeginPlay()
 			CardActor->Click.AddDynamic(this, &AMainMenuCameraActor::SetCameraMod);
 		}
 	}
-	
+
 	FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams();
 	GetWorld()->GetFirstPlayerController()->SetViewTarget(this, TransitionParams);
 }

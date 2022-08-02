@@ -8,7 +8,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "MainMenuGameMode.generated.h"
 
-
 UCLASS()
 class HORRORGAME_API AMainMenuGameMode : public AGameModeBase
 {
@@ -16,9 +15,8 @@ class HORRORGAME_API AMainMenuGameMode : public AGameModeBase
 
 public:
 	AMainMenuGameMode();
-	
+
 protected:
-	
 	virtual void BeginPlay() override;
 
 public:
