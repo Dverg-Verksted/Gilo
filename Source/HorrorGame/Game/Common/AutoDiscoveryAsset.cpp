@@ -12,6 +12,7 @@ void UAutoDiscoveryAsset::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTag
 	Super::GetAssetRegistryTags(OutTags);
 }
 
+#if WITH_EDITOR
 void UAutoDiscoveryAsset::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	// Проверяем имя ассета на уникальность
@@ -35,5 +36,6 @@ void UAutoDiscoveryAsset::PostEditChangeProperty(FPropertyChangedEvent& Property
 		}
 	}
 }
+#endif
 
 #undef LOCTEXT_NAMESPACE

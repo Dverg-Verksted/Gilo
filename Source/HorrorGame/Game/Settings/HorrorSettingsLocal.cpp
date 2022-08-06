@@ -6,9 +6,7 @@
 #include "Game/Player/PlayerSettings.h"
 #include "Game/System/HorrorAssetManager.h"
 
-UHorrorSettingsLocal::UHorrorSettingsLocal()
-{
-}
+UHorrorSettingsLocal::UHorrorSettingsLocal() {}
 
 UHorrorSettingsLocal* UHorrorSettingsLocal::Get()
 {

@@ -168,6 +168,7 @@ void ADoorActorBase::OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID)
 	}
 }
 
+#if WITH_EDITOR
 void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -176,3 +177,4 @@ void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 		ReloadDoorAsset();
 	}
 }
+#endif

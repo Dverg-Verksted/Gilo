@@ -168,6 +168,7 @@ void ADrawerActorBase::OnHoverEnd_Implementation(APlayerController* PlayerContro
 	}
 }
 
+#if WITH_EDITOR
 void ADrawerActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -176,3 +177,4 @@ void ADrawerActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		ReloadDrawerAsset();
 	}
 }
+#endif
