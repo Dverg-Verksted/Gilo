@@ -1,4 +1,4 @@
-// It is owned by the company Dverg Verksted.
+ï»¿// It is owned by the company Dverg Verksted.
 
 #include "Game/MainMenu/MainMenuCard.h"
 #include "Components/StaticMeshComponent.h"
@@ -24,17 +24,14 @@ AMainMenuCard::AMainMenuCard()
 
 	bOpen = false;
 }
-//Çàïóñê ïîâîðîòà êàðòû ïî òàéìëàéíó FromStart- êàðòà âûåçæàåò Revers - óåçæàåò
+//Ð—Ð°Ð¿ÑƒÑÐº Ð¿Ð¾Ð²Ð¾Ñ€Ð¾Ñ‚Ð° ÐºÐ°Ñ€Ñ‚Ñ‹ Ð¿Ð¾ Ñ‚Ð°Ð¹Ð¼Ð»Ð°Ð¹Ð½Ñƒ FromStart- ÐºÐ°Ñ€Ñ‚Ð° Ð²Ñ‹ÐµÐ·Ð¶Ð°ÐµÑ‚ Revers - ÑƒÐµÐ·Ð¶Ð°ÐµÑ‚
 void AMainMenuCard::ToggleCard()
 {
-	if (this->bOpen)
-	{
-		
-	}
-	else
-	{
-		bOpen = !bOpen;
-	}
+	FTimerHandle CardMoveDelayTimerHandle;
+	bCardMove = true;
+	GetWorld()->GetTimerManager().SetTimer(CardMoveDelayTimerHandle, this, &AMainMenuCard::CardMoveFinished, 2.0f, false);
+
+	bOpen = !bOpen;
 	CardRotation = CardMesh->GetRelativeRotation();
 	Click.Broadcast(bOpen);
 	if (bOpen)
@@ -47,7 +44,7 @@ void AMainMenuCard::ToggleCard()
 		MyTimeLine.Reverse();
 	}
 }
-//Óñòàíîâêà âðàùåíèÿ êàðòû îòíîñèòåëüíî çíà÷åíèé timeline
+//Ð£ÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ° Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¸Ñ ÐºÐ°Ñ€Ñ‚Ñ‹ Ð¾Ñ‚Ð½Ð¾ÑÐ¸Ñ‚ÐµÐ»ÑŒÐ½Ð¾ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ð¹ timeline
 void AMainMenuCard::ControlCard()
 {
 	TimelineValue = MyTimeLine.GetPlaybackPosition();
@@ -57,23 +54,26 @@ void AMainMenuCard::ControlCard()
 	CardMesh->SetRelativeRotation(NewRotation);
 }
 
-//Äåéñòâèå ïî êëèêó, ïðîâåðÿåì åñòü ëè äðóãèå îòêðûòûå êàðòû ÷òîáû íå òûêàòü ìíîãî êàðò
+void AMainMenuCard::CardMoveFinished()
+{
+	bCardMove = false;
+}
+
+//Ð”ÐµÐ¹ÑÑ‚Ð²Ð¸Ðµ Ð¿Ð¾ ÐºÐ»Ð¸ÐºÑƒ, Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÐµÑÑ‚ÑŒ Ð»Ð¸ Ð´Ñ€ÑƒÐ³Ð¸Ðµ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚Ñ‹Ðµ ÐºÐ°Ñ€Ñ‚Ñ‹ Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð½Ðµ Ñ‚Ñ‹ÐºÐ°Ñ‚ÑŒ Ð¼Ð½Ð¾Ð³Ð¾ ÐºÐ°Ñ€Ñ‚
 void AMainMenuCard::OnSelected(AActor* Target, FKey ButtonPressed)
 {
 	int32 CountCards = 0;
-	if (this->bOpen)
-	{
-		ToggleCard();
-	}
-	else
+
+	if (!this->bCardMove)
 	{
 		for (auto* Actor : CardActors)
 		{
 			if (auto* CardActor = Cast<AMainMenuCard>(Actor))
 			{
-				if (CardActor->bOpen) CountCards++;
+				if (CardActor->bCardMove) CountCards++;
 			}
 		}
+
 		if (CountCards == 0) ToggleCard();
 	}
 }
@@ -83,7 +83,6 @@ void AMainMenuCard::BeginPlay()
 	Super::BeginPlay();
 	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	RotateValue = 1.0f;
-
 
 	if (!CurveFloat) return;
 

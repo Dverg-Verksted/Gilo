@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
-#include "MainMenuCard.h"
-#include "Kismet/GameplayStatics.h"
 #include "MainMenuGameMode.generated.h"
 
 UCLASS()

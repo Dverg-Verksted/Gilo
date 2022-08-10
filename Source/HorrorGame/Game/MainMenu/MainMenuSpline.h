@@ -37,16 +37,17 @@ protected:
 	UFUNCTION()
 	void ControlCard();
 
-	virtual void BeginPlay() override;
-
-public:
-	bool bOpen;	 //приехала карта или нет
 	float MoveValue;		// на сколько пододвинуть за тик
 	float CurveFloatValue;	//текущее значение кривой
 	float TimelineValue;
 	FRotator CardRotation;
 	FTransform NewTransform;
 	FTimeline MyTimeLine;
+
+	virtual void BeginPlay() override;
+
+public:
+	bool bOpen;	 //приехала карта или нет
 
 	virtual void Tick(float DeltaTime) override;
 };

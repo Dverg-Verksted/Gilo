@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "MainMenuCard.h"
-#include "MainMenuSpline.h"
 #include "GameFramework/Actor.h"
 #include "Camera/CameraComponent.h"
 #include "MainMenuCameraActor.generated.h"
@@ -19,9 +18,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Card")
 	AMainMenuCard* CardRef;
-	UPROPERTY(EditAnywhere, Category = "Card")
-	AMainMenuSpline* SplineRef;
-
+	UPROPERTY()
 	TArray<AActor*> CardActors;
 
 protected:
@@ -32,6 +29,8 @@ protected:
 
 	UFUNCTION()
 	void SetCameraMod(bool bCardMove);
+
+	EViewTargetBlendFunction BlendFunc = VTBlend_EaseInOut;
 
 	virtual void BeginPlay() override;
 

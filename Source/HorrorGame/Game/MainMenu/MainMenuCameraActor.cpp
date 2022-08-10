@@ -1,8 +1,9 @@
-// It is owned by the company Dverg Verksted.
+п»ї// It is owned by the company Dverg Verksted.
 
 #include "Game/MainMenu/MainMenuCameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/SingleThreadEvent.h"
 #include "Camera/CameraModifier.h"
 
 AMainMenuCameraActor::AMainMenuCameraActor()
@@ -17,8 +18,7 @@ AMainMenuCameraActor::AMainMenuCameraActor()
 void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 {
 	APlayerController* OurPlayer = UGameplayStatics::GetPlayerController(this, 0);
-	EViewTargetBlendFunction BlendFunc = VTBlend_EaseInOut;
-	//ищем конкретную карту на которую кликнули
+	//РёС‰РµРј РєРѕРЅРєСЂРµС‚РЅСѓСЋ РєР°СЂС‚Сѓ РЅР° РєРѕС‚РѕСЂСѓСЋ РєР»РёРєРЅСѓР»Рё
 	for (auto* Actor : CardActors)
 	{
 		if (auto* CardActor = Cast<AMainMenuCard>(Actor))
@@ -26,7 +26,7 @@ void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 			if (CardActor->bOpen) CardRef = CardActor;
 		}
 	}
-	//устанавливаем фокус на объект который кликнули
+	//СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј С„РѕРєСѓСЃ РЅР° РѕР±СЉРµРєС‚ РєРѕС‚РѕСЂС‹Р№ РєР»РёРєРЅСѓР»Рё
 	if (bCardMove)
 	{
 		OurPlayer->SetViewTargetWithBlend(CardRef, 2.0f, BlendFunc, 2.0f, false);
@@ -40,7 +40,7 @@ void AMainMenuCameraActor::SetCameraMod(bool bCardMove)
 void AMainMenuCameraActor::BeginPlay()
 {
 	Super::BeginPlay();
-	//получаем все экземпляры класса карты
+	//РїРѕР»СѓС‡Р°РµРј РІСЃРµ СЌРєР·РµРјРїР»СЏСЂС‹ РєР»Р°СЃСЃР° РєР°СЂС‚С‹
 	UGameplayStatics::GetAllActorsOfClass(this, AMainMenuCard::StaticClass(), CardActors);
 	for (auto* Actor : CardActors)
 	{

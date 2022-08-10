@@ -1,6 +1,7 @@
 ﻿// It is owned by the company Dverg Verksted.
 
 #include "Game/MainMenu/MainMenuSpline.h"
+#include "MainMenuCard.h"
 #include "Components/SplineComponent.h"
 
 AMainMenuSpline::AMainMenuSpline()
@@ -28,7 +29,6 @@ void AMainMenuSpline::GoForSpline(bool bCardMove)
 	{
 		MyTimeLine.Reverse();
 	}
-
 }
 
 //Установка перемещения карты по timeline относительно значений timeline
@@ -46,7 +46,6 @@ void AMainMenuSpline::ControlCard()
 	NewTransform.SetRotation(NewRotation);
 
 	CardRef->SetActorTransform(NewTransform);
-	
 }
 
 void AMainMenuSpline::BeginPlay()
@@ -65,7 +64,6 @@ void AMainMenuSpline::BeginPlay()
 
 	MyTimeLine.AddInterpFloat(CurveFloat, TimelimeCallback);
 	MyTimeLine.SetTimelineFinishedFunc(TimelineFinishedCallback);
-	
 }
 
 void AMainMenuSpline::Tick(float DeltaTime)
