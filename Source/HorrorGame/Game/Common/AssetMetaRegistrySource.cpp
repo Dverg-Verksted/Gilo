@@ -142,8 +142,6 @@ bool UAssetMetaRegistrySource::AcquireItem(FDataRegistrySourceAcquireRequest&& R
 
 bool UAssetMetaRegistrySource::DoesAssetPassFilter(const FAssetData& AssetData, bool bNewRegisteredAsset)
 {
-	const UDataRegistrySettings* Settings = GetDefault<UDataRegistrySettings>();
-
 	// Call into parent to check search rules if needed
 	if (bNewRegisteredAsset)
 	{
