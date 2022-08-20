@@ -8,7 +8,8 @@
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "Game/System/HorrorAssetManager.h"
 
-APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	StrafeMoveMagnitude = 0.75f;
@@ -84,6 +85,10 @@ void APlayerCharacterBase::BeginPlay()
 		MaxPeekSlowDown = PlayerSettings->MaxPeekSlowDown;
 		StrafeMoveMagnitude = PlayerSettings->StrafeMoveMagnitude;
 		BackMoveMagnitude = PlayerSettings->BackMoveMagnitude;
+		if (auto* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->JumpZVelocity = PlayerSettings->JumpVelocity;
+		}
 	}
 	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
@@ -191,6 +196,11 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &APlayerCharacterBase::SprintStartHandler);
 		PlayerEnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacterBase::SprintStopHandler);
+	}
+
+	if (JumpAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::JumpActionHandler);
 	}
 }
 
@@ -310,6 +320,15 @@ void APlayerCharacterBase::CrouchActionHandler(const FInputActionValue& ActionVa
 	{
 		Crouch();
 	}
+}
+
+void APlayerCharacterBase::JumpActionHandler(const FInputActionValue& ActionValue)
+{
+	const auto* MoveComp = GetCharacterMovement();
+	if (!MoveComp) return;
+
+	if (!MoveComp->IsFalling())
+		Jump();
 }
 
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)

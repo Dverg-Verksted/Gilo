@@ -19,4 +19,5 @@ UPlayerSettings::UPlayerSettings()
 	MinStaminaAmount = 3.75f;
 	StaminaDrainRate = 1.0f;
 	StaminaRestoreRate = 0.3f;
+	JumpVelocity = 420.0f;
 }

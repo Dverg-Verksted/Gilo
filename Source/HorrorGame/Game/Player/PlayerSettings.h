@@ -75,7 +75,11 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName = "Восстановление выносливости", meta = (ToolTip = "Темп восстановления выносливости"))
 	float StaminaRestoreRate;
 
-	/** Настройки привязки клавишь для разных устроств ввода*/
+	/* Сила прыжка (вместе с гравитацией влияет на высоту) */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName = "Сила прыжка", meta = (ToolTip = "Сила прыжка (вместе с гравитацией влияет на высоту)"))
+	float JumpVelocity;
+	
+	/** Настройки привязки клавишь для разных устройств ввода*/
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление", meta = (ToolTip = "Настройки привязки клавиш"))
 	TArray<FInputMappingSetup> InputSetups;
 

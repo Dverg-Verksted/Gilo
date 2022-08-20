@@ -79,6 +79,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> SprintAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
+    TObjectPtr<UInputAction> JumpAction;
 
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()
@@ -177,4 +180,8 @@ private:
 	/** Обработчик ввода приседа */
 	UFUNCTION()
 	void CrouchActionHandler(const FInputActionValue& ActionValue);
+
+	/** Обработчик ввода прыжка */
+	UFUNCTION()
+	void JumpActionHandler(const FInputActionValue& ActionValue);
 };
