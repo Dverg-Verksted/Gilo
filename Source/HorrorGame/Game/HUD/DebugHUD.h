@@ -16,7 +16,7 @@ class HORRORGAME_API ADebugHUD : public AHUD
 
 public:
 	// Construct the debugging HUD, mainly establishing a font to use for display.
-	ADebugHUD();
+	ADebugHUD(const FObjectInitializer& ObjectInitializer);
 
 	// Changed state param EnableDebugHUD
 	UFUNCTION(BlueprintCallable, Category = "ADebugHUD|SetData")

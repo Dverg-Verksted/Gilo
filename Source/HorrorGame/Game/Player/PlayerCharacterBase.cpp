@@ -8,8 +8,7 @@
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "Game/System/HorrorAssetManager.h"
 
-APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	StrafeMoveMagnitude = 0.75f;
@@ -327,8 +326,7 @@ void APlayerCharacterBase::JumpActionHandler(const FInputActionValue& ActionValu
 	const auto* MoveComp = GetCharacterMovement();
 	if (!MoveComp) return;
 
-	if (!MoveComp->IsFalling())
-		Jump();
+	if (!MoveComp->IsFalling()) Jump();
 }
 
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)

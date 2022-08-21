@@ -79,9 +79,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> SprintAction;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
-    TObjectPtr<UInputAction> JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()

@@ -3,7 +3,7 @@
 #include "Game/HUD/DebugHUD.h"
 #include "Engine/Canvas.h"
 
-ADebugHUD::ADebugHUD()
+ADebugHUD::ADebugHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FObjectFinder<UFont> Font(TEXT("/Engine/EngineFonts/Roboto"));
 
