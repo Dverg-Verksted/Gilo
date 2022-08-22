@@ -31,7 +31,8 @@ public:
 
 	/* Отображает окно диалога */
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContext"), Category = "UI")
-	static UPushPromptAsyncTask* ShowPrompt(UObject* WorldContext, APlayerController* PlayerController, TSubclassOf<UGenericPromptBase> Class, const FPromptSetup& Setup);
+	static UPushPromptAsyncTask* ShowPrompt(UObject* WorldContext, APlayerController* PlayerController, UPARAM(meta=(AllowAbstract=false)) TSubclassOf<UGenericPromptBase> Class,
+		const FPromptSetup& Setup);
 
 	/* Привязка к событиями диалога */
 	void BindToPrompt();

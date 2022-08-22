@@ -8,6 +8,6 @@ else (
 	cd ..\..\
 )
 
-
 clean.bat
+build_development.bat
 pause
