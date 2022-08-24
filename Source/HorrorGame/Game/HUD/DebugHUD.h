@@ -16,7 +16,7 @@ class HORRORGAME_API ADebugHUD : public AHUD
 
 public:
 	// Construct the debugging HUD, mainly establishing a font to use for display.
-	ADebugHUD();
+	ADebugHUD(const FObjectInitializer& ObjectInitializer);
 
 	// Changed state param EnableDebugHUD
 	UFUNCTION(BlueprintCallable, Category = "ADebugHUD|SetData")
@@ -47,38 +47,31 @@ protected:
 
 private:
 	// Font used to render the debug information.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	UFont* MainFont = nullptr;
 
 	// Size text for Main font.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	int32 SizeFont = 16;
 
 	// Color display of the title parameter text
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	FLinearColor TitleColor = FLinearColor::White;
 
 	// The current X coordinate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	float DefaultX = 50.0f;
 
 	// The current Y coordinate.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	float DefaultY = 50.0f;
 
 	// The line height to separate each HUD entry.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	float LineHeight = 26.0f;
 
 	// The horizontal offset to render the statistic values.
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug",
-		meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Debug", meta = (AllowPrivateAccess = "true", EditCondition = "EnableDebugHUD", EditConditionHides))
 	float HorizontalOffset = 250.0f;
 
 	// Current X and Y
