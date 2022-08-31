@@ -9,10 +9,14 @@
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DoorDataAsset.h"
+#include "Kismet/KismetMathLibrary.h"
+
+#pragma optimize("", off)
 
 ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
@@ -89,6 +93,7 @@ void ADoorActorBase::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset
 		MinDoorAngle = DoorAsset->MinDoorAngle;
 		MaxDoorAngle = DoorAsset->MaxDoorAngle;
 		DragMagnitude = DoorAsset->DragMagnitude;
+		AutoOpenSpeed = DoorAsset->QuickOpenSpeed;
 	}
 }
 
@@ -144,6 +149,62 @@ void ADoorActorBase::OnHoverEnd_Implementation(APlayerController* PlayerControll
 void ADoorActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bMoving)
+	{
+		const FRotator CurrentRotation = DoorRootComponent->GetRelativeRotation();
+		const FRotator TargetRotation = FRotator(0.0f, MovingTargetAngle, 0.0f);
+		const FRotator NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, AutoOpenSpeed);
+		if (FMath::IsNearlyEqual(FMath::Abs(CurrentRotation.Yaw), FMath::Abs(MovingTargetAngle), 0.1f))
+		{
+			DoorRootComponent->SetRelativeRotation(TargetRotation);
+			StopMoving();
+		}
+		else
+		{
+			DoorRootComponent->SetRelativeRotation(NewRotation);
+		}
+	}
+}
+
+bool ADoorActorBase::IsMoving() const
+{
+	if (bDragged || bMoving) return true;
+	return false;
+}
+
+void ADoorActorBase::StartMoving(float TargetAngle)
+{
+	if (IsMoving()) return;
+	bMoving = true;
+	const FRotator CurrentRot = DoorRootComponent->GetRelativeRotation();
+	MovingStartAngle = CurrentRot.Yaw;
+	MovingTargetAngle = FMath::ClampAngle(TargetAngle, MinDoorAngle, MaxDoorAngle);
+	SetActorTickEnabled(true);
+}
+
+void ADoorActorBase::StopMoving()
+{
+	SetActorTickEnabled(false);
+	bMoving = false;
+}
+
+float ADoorActorBase::CalculateOpenAngle() const
+{
+	const FRotator CurrentRot = DoorRootComponent->GetRelativeRotation();
+	const FRotator MinRotation = FRotator(0.0f, MinDoorAngle, 0.0f);
+	const FRotator MaxRotation = FRotator(0.0f, MaxDoorAngle, 0.0f);
+	const float DistMin = UKismetMathLibrary::Quat_AngularDistance(CurrentRot.Quaternion(), MinRotation.Quaternion());
+	const float DistMax = UKismetMathLibrary::Quat_AngularDistance(CurrentRot.Quaternion(), MaxRotation.Quaternion());
+	const float Angle = DistMin >= DistMax ? MinDoorAngle : MaxDoorAngle;
+	return Angle;
+}
+
+void ADoorActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+{
+	if (bDragged) return;
+	if (bMoving) StopMoving();
+	const float TargetAngle = CalculateOpenAngle();
+	StartMoving(TargetAngle);
 }
 
 void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
@@ -178,3 +239,5 @@ void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 	}
 }
 #endif
+
+#pragma optimize("", on)

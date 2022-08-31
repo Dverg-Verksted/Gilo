@@ -45,6 +45,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Door")
 	float DragMagnitude = 10.0f;
 
+	/* Скорость автоматического открытия */
+	UPROPERTY(EditDefaultsOnly, Category = "Door")
+	float AutoOpenSpeed = 5.0f;
+
 	/* Действие открытия двери */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> DoorDragAction;
@@ -91,21 +95,38 @@ protected:
 #endif
 
 public:
-	virtual void OnConstruction(const FTransform& Transform) override;
-
-	// Interactive object interface BEGIN
+#pragma region InteractiveObjectInterface
 	virtual void InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset) override;
 	virtual void OnHoverBegin_Implementation(APlayerController* PlayerController, const FHitResult& Hit) override;
 	virtual void OnHoverEnd_Implementation(APlayerController* PlayerController) override;
-	// Interactive object interface END
+#pragma endregion
 
+#pragma region GameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
+#pragma endregion
 
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnUseObject_Implementation(APlayerController* PlayerController) override;
+	/* Возвращает TRUE - Если дверь сейчас движется */
+	FORCEINLINE bool IsMoving() const;
 
 private:
 	/* TRUE - Если уже привязались к вводу */
 	bool bInputBinded = false;
-	/* TRUE - Если двигаем дверь */
+	/* TRUE - Если двигаем дверь вручную (с помощью движений мыши/контроллера) */
 	bool bDragged = false;
+	/* TRUE - Если дверь дверь в процессе открытия/закрытия */
+	bool bMoving = false;
+	/* Угол поворота двери, с которого было начато движение */
+	float MovingStartAngle = 0.0f;
+	/* Требуемый угол поворота двери */
+	float MovingTargetAngle = 0.0f;
+
+	/* Начать движение двери к  */
+	void StartMoving(float TargetAngle);
+	/* Остановить автоматическое открытие/закрытие двери */
+	void StopMoving();
+	/* Вычисляет угол, максимально удаленный от текущего угла поворота двери */
+	float CalculateOpenAngle() const;
 };
