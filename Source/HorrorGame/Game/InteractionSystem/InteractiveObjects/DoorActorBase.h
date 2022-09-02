@@ -20,6 +20,20 @@ class HORRORGAME_API ADoorActorBase : public AActor, public IInteractiveObject, 
 public:
 	ADoorActorBase(const FObjectInitializer& ObjectInitializer);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickOpenCloseCompleteHandler, float, TargetAngle);
+
+	/* Событие вызывается по завершении автоматического открытия/закрытия двери */
+	UPROPERTY(BlueprintAssignable)
+	FOnQuickOpenCloseCompleteHandler OnQuickOpenCloseComplete;
+
+	/* Дата Ассет текущей двери */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractiveObjects|Door")
+	FDataRegistryId DoorID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
+	FGameplayTagContainer GameplayTags;
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 
@@ -29,24 +43,28 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<UStaticMeshComponent> DoorMeshComponent;
 
-	/* Дата Ассет текущей двери */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door")
-	FDataRegistryId DoorID;
+	/* Угол поворота открытой двери в автоматическом режиме */
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
+	float DoorOpenedAngle = 90.0f;
+
+	/* Угол поворота закрытой двери в автоматическом режиме */
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
+	float DoorClosedAngle = 0.0f;
 
 	/* Минимальный угол открытия двери */
-	UPROPERTY(EditDefaultsOnly, Category = "Door")
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
 	float MinDoorAngle = 0.0f;
 
 	/* Максимальный угол открытия двери */
-	UPROPERTY(EditDefaultsOnly, Category = "Door")
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
 	float MaxDoorAngle = 90.0f;
 
 	/* Коэффициент открытия */
-	UPROPERTY(EditDefaultsOnly, Category = "Door")
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
 	float DragMagnitude = 10.0f;
 
 	/* Скорость автоматического открытия */
-	UPROPERTY(EditDefaultsOnly, Category = "Door")
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
 	float AutoOpenSpeed = 5.0f;
 
 	/* Действие открытия двери */
@@ -65,12 +83,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	int32 DoorInputContextPriority = 10;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
-	FGameplayTagContainer GameplayTags;
-
-protected:
 	/* Требуемый угол открытия двери */
 	float DesiredAngle = 0.0f;
+	/* TRUE - Если разрешается открытие с помощью движения мыши/контроллера */
+	bool bDragEnabled = true;
 
 	UPROPERTY()
 	TObjectPtr<APlayerController> DragPlayerController;
@@ -95,6 +111,12 @@ protected:
 #endif
 
 public:
+#pragma region GettersSetters
+	/* Возвращает TRUE - Если возможно ручное открытие */
+	UFUNCTION(BlueprintPure, Category = "InteractiveObjects|Door")
+	FORCEINLINE bool IsDragEnabled() const { return bDragEnabled; }
+#pragma endregion
+
 #pragma region InteractiveObjectInterface
 	virtual void InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset) override;
 	virtual void OnHoverBegin_Implementation(APlayerController* PlayerController, const FHitResult& Hit) override;
@@ -104,6 +126,12 @@ public:
 #pragma region GameplayTagAssetInterface
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
 #pragma endregion
+	/* Открыть дверь */
+	UFUNCTION(BlueprintCallable, Category = "InteractiveObjects|Door")
+	void OpenDoor();
+	/* Закрыть дверь */
+	UFUNCTION(BlueprintCallable, Category = "InteractiveObjects|Door")
+	void CloseDoor();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
