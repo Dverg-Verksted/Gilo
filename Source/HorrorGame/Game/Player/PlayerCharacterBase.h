@@ -116,6 +116,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	bool bPhoneOpened = false;
 
+	/* TRUE - Если игрок может бегать */
+	bool bSprintEnabled = true;
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -130,6 +133,10 @@ protected:
 	void TogglePhone();
 
 public:
+	/* Включение/отключение возможности бега у игрока */
+	UFUNCTION(BlueprintCallable)
+	void ToggleSprintEnabled(bool bEnabled);
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }

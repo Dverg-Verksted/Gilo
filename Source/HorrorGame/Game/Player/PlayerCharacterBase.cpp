@@ -182,6 +182,17 @@ void APlayerCharacterBase::TogglePhone()
 	bPhoneOpened = !bPhoneOpened;
 }
 
+void APlayerCharacterBase::ToggleSprintEnabled(bool bEnabled)
+{
+	bSprintEnabled = bEnabled;
+	if (!bSprintEnabled)
+	{
+		// Остановка бега (если он начат)
+		PlayerSprintComponent->ToggleSprint(false);
+		WalkCameraShakeComponent->ToggleSprinting(false);
+	}
+}
+
 void APlayerCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -396,6 +407,8 @@ void APlayerCharacterBase::JumpActionHandler(const FInputActionValue& ActionValu
 
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)
 {
+	if (!bSprintEnabled) return;
+
 	PlayerSprintComponent->ToggleSprint(true);
 	WalkCameraShakeComponent->ToggleSprinting(true);
 }
