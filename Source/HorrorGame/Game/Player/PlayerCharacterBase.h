@@ -83,6 +83,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> JumpAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
+	TObjectPtr<UInputAction> TogglePhoneAction;
+
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()
 	float MaxPeekSlowDown;
@@ -106,8 +109,16 @@ protected:
 	UPROPERTY()
 	APlayerController* PlayerController;
 
+	UPROPERTY()
+	UUserWidget* PhoneWidget;
+	int32 PhoneWidgetZOrder = 1000;
+	/* TRUE - Если сейчас демонстрируется виджет телефона */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	bool bPhoneOpened = false;
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	/** Инициализация привязок клавиш
 	 * @return TRUE - Если инициализация выполнена успешно
 	 */
@@ -115,6 +126,8 @@ protected:
 	virtual void PawnClientRestart() override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
+	/* Показывает/скрывает виджет телефона */
+	void TogglePhone();
 
 public:
 	virtual void Tick(float DeltaTime) override;
@@ -138,6 +151,11 @@ private:
 
 	/* Текущее значение смещения камеры в наклоне */
 	FVector CameraPeekOffset;
+
+	/* Создаем виджет телефона (если он еще не создан) */
+	void CreatePhoneWidget();
+	/* Очистка и удаление виджета телефона */
+	void DestroyPhoneWidget();
 
 	/** Обработчик начала ходьбы */
 	UFUNCTION()
@@ -184,4 +202,8 @@ private:
 	/** Обработчик ввода прыжка */
 	UFUNCTION()
 	void JumpActionHandler(const FInputActionValue& ActionValue);
+
+	/** Обработчик демонстрации телефона */
+	UFUNCTION()
+	void TogglePhoneActionHandler(const FInputActionValue& InputActionValue);
 };
