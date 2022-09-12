@@ -4,10 +4,13 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
 #include "Blueprint/UserWidget.h"
+#include "Game/GameModes/HorrorGameGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "Game/System/HorrorAssetManager.h"
+#include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #pragma optimize("", off)
 
@@ -51,6 +54,16 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	WalkCameraShakeComponent = ObjectInitializer.CreateDefaultSubobject<UWalkCameraShakeComponent>(this, TEXT("WalkCameraShakeComponent"));
 	InteractionComponent = ObjectInitializer.CreateDefaultSubobject<UInteractionComponent>(this, TEXT("InteractionComponent"));
 	PhysicsHandleComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicsHandleComponent>(this, TEXT("PhysicsHandleComponent"));
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UHealthComponent>(this, TEXT("HealthComponent"));
+	HealthComponent->OnDeath.AddDynamic(this, &ThisClass::OnPlayerDeathHandler);
+}
+
+void APlayerCharacterBase::OnPlayerDeathHandler()
+{
+	if (auto* GameMode = Cast<AHorrorGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		GameMode->KillPlayer(PlayerController);
+	}
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)

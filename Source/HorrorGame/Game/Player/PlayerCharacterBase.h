@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "EnhancedInputComponent.h"
 #include "GameplayTagAssetInterface.h"
+#include "HealthComponent.h"
 #include "PlayerSprintComponent.h"
 #include "WalkCameraShakeComponent.h"
 #include "Camera/CameraComponent.h"
@@ -51,6 +52,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandleComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
@@ -110,7 +114,7 @@ protected:
 	APlayerController* PlayerController;
 
 	UPROPERTY()
-	UUserWidget* PhoneWidget;
+	UUserWidget* PhoneWidget = nullptr;
 	int32 PhoneWidgetZOrder = 1000;
 	/* TRUE - Если сейчас демонстрируется виджет телефона */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
@@ -119,6 +123,8 @@ protected:
 	/* TRUE - Если игрок может бегать */
 	bool bSprintEnabled = true;
 
+	UFUNCTION()
+	void OnPlayerDeathHandler();
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

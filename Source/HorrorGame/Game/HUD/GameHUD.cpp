@@ -2,6 +2,7 @@
 
 #include "Game/HUD/GameHUD.h"
 #include "Game/InteractionSystem/InteractionComponent.h"
+#include "Game/Player/HealthComponent.h"
 #include "Game/Player/PlayerSprintComponent.h"
 #include "Game/UI/GameBaseUILayer.h"
 #include "Kismet/GameplayStatics.h"
@@ -101,6 +102,11 @@ void AGameHUD::DrawHUD()
 					Msg = CurrentActor->GetName();
 				}
 				AddText(TEXT("Интерактивный объект"), FText::FromString(Msg));
+			}
+
+			if (const auto* HealthComp = Cast<UHealthComponent>(PlayerPawn->GetComponentByClass(UHealthComponent::StaticClass())))
+			{
+				AddFloat(TEXT("Здоровье:"), HealthComp->GetPlayerHealth());
 			}
 		}
 	}
