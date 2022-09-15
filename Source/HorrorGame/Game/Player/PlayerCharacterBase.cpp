@@ -3,10 +3,16 @@
 #include "Game/Player/PlayerCharacterBase.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
+#include "Blueprint/UserWidget.h"
+#include "Game/GameModes/HorrorGameGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "Game/System/HorrorAssetManager.h"
+#include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+
+#pragma optimize("", off)
 
 APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -48,6 +54,16 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	WalkCameraShakeComponent = ObjectInitializer.CreateDefaultSubobject<UWalkCameraShakeComponent>(this, TEXT("WalkCameraShakeComponent"));
 	InteractionComponent = ObjectInitializer.CreateDefaultSubobject<UInteractionComponent>(this, TEXT("InteractionComponent"));
 	PhysicsHandleComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicsHandleComponent>(this, TEXT("PhysicsHandleComponent"));
+	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UHealthComponent>(this, TEXT("HealthComponent"));
+	HealthComponent->OnDeath.AddDynamic(this, &ThisClass::OnPlayerDeathHandler);
+}
+
+void APlayerCharacterBase::OnPlayerDeathHandler()
+{
+	if (auto* GameMode = Cast<AHorrorGameGameModeBase>(UGameplayStatics::GetGameMode(this)))
+	{
+		GameMode->KillPlayer(PlayerController);
+	}
 }
 
 void APlayerCharacterBase::OnConstruction(const FTransform& Transform)
@@ -92,6 +108,21 @@ void APlayerCharacterBase::BeginPlay()
 	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
 
+void APlayerCharacterBase::DestroyPhoneWidget()
+{
+	if (PhoneWidget)
+	{
+		PhoneWidget->RemoveFromParent();
+		PhoneWidget = nullptr;
+	}
+}
+
+void APlayerCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	DestroyPhoneWidget();
+}
+
 bool APlayerCharacterBase::InitInputMappings() const
 {
 	// TODO Вынести в специализированный InputComponent
@@ -133,6 +164,7 @@ void APlayerCharacterBase::PawnClientRestart()
 		InteractionComponent->OnPlayerReady();
 		InteractionComponent->StartTrace();
 	}
+	CreatePhoneWidget();
 }
 
 void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -145,6 +177,33 @@ void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	CameraCrouchOffset = FVector::ZeroVector;
+}
+
+void APlayerCharacterBase::TogglePhone()
+{
+	ensure(PhoneWidget);
+	if (!PhoneWidget) return;
+
+	if (bPhoneOpened)
+	{
+		PhoneWidget->RemoveFromParent();
+	}
+	else
+	{
+		PhoneWidget->AddToViewport(PhoneWidgetZOrder);
+	}
+	bPhoneOpened = !bPhoneOpened;
+}
+
+void APlayerCharacterBase::ToggleSprintEnabled(bool bEnabled)
+{
+	bSprintEnabled = bEnabled;
+	if (!bSprintEnabled)
+	{
+		// Остановка бега (если он начат)
+		PlayerSprintComponent->ToggleSprint(false);
+		WalkCameraShakeComponent->ToggleSprinting(false);
+	}
 }
 
 void APlayerCharacterBase::Tick(float DeltaTime)
@@ -201,6 +260,36 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::JumpActionHandler);
 	}
+
+	if (TogglePhoneAction)
+	{
+		PlayerEnhancedInputComponent->BindAction(TogglePhoneAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::TogglePhoneActionHandler);
+	}
+}
+
+void APlayerCharacterBase::CreatePhoneWidget()
+{
+	if (PhoneWidget)
+	{
+		DestroyPhoneWidget();
+	}
+
+	const auto* AssetManager = UHorrorAssetManager::Get();
+	ensure(AssetManager);
+	if (!AssetManager) return;
+
+	auto* PlayerSettings = UPlayerSettings::Get();
+	ensure(PlayerSettings);
+	if (!PlayerSettings) return;
+
+	UClass* WidgetClass = Cast<UClass>(AssetManager->LoadAssetSync(PlayerSettings->PhoneWidget));
+	ensure(WidgetClass);
+
+	if (!PlayerController) return;
+	PhoneWidget = CreateWidget<UUserWidget>(PlayerController, WidgetClass, FName(TEXT("PlayerPhoneWidget")));
+	ensure(PhoneWidget);
+	if (!PhoneWidget) return;
+	PhoneWidgetZOrder = PlayerSettings->PhoneZOrder;
 }
 
 void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
@@ -331,6 +420,8 @@ void APlayerCharacterBase::JumpActionHandler(const FInputActionValue& ActionValu
 
 void APlayerCharacterBase::SprintStartHandler(const FInputActionValue& ActionValue)
 {
+	if (!bSprintEnabled) return;
+
 	PlayerSprintComponent->ToggleSprint(true);
 	WalkCameraShakeComponent->ToggleSprinting(true);
 }
@@ -340,3 +431,10 @@ void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValu
 	PlayerSprintComponent->ToggleSprint(false);
 	WalkCameraShakeComponent->ToggleSprinting(false);
 }
+
+void APlayerCharacterBase::TogglePhoneActionHandler(const FInputActionValue& InputActionValue)
+{
+	TogglePhone();
+}
+
+#pragma optimize("", on)

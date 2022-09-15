@@ -29,6 +29,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Drawer", DisplayName = "Тяжесть открытия", meta = (ToolTip = "Тяжесть открытия. Чем меньше - тем тяжелее"))
 	float DragMagnitude = 10.0f;
 
+	/* Скорость быстрого открытия/закрытия ящика */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Drawer", DisplayName = "Скорость открытия", meta = (ToolTip = "Скорость быстрого открытия/закрытия ящика. Чем меньше, тем медленнее"))
+	float QuickOpenSpeed = 3.0f;
+
 protected:
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
 };

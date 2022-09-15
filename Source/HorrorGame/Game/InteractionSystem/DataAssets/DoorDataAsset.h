@@ -29,9 +29,25 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Макс. угол", meta = (ToolTip = "Макс. угол открытия двери"))
 	float MaxDoorAngle = 90.0f;
 
+	/* Разрешается открытие с помощью движения мыши/контроллера */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Ручное открытие", meta = (ToolTip = "Разрешается открытие с помощью движения мыши/контроллера"))
+	bool bDragEnabled = true;
+
 	/* Тяжесть открытия */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Тяжесть открытия", meta = (ToolTip = "Тяжесть открытия. Чем меньше - тем тяжелее"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Тяжесть открытия", meta = (ToolTip = "Тяжесть открытия. Чем меньше - тем тяжелее", EditCondition = "bDragEnabled"))
 	float DragMagnitude = 10.0f;
+
+	/* Скорость быстрого открытия/закрытия двери */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Скорость открытия", meta = (ToolTip = "Скорость быстрого открытия/закрытия двери. Чем меньше, тем медленнее"))
+	float QuickOpenSpeed = 3.0f;
+
+	/* Угол поворота открытой двери в автоматическом режиме */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Угол открытой двери", meta = (ToolTip = "Угол поворота открытой двери в автоматическом режиме"))
+	float DoorOpenedAngle = 0.0f;
+
+	/* Угол поворота закрытой двери в автоматическом режиме */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Угол закрытой двери", meta = (ToolTip = "Угол поворота закрытой двери в автоматическом режиме"))
+	float DoorClosedAngle = 90.0f;
 
 protected:
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;

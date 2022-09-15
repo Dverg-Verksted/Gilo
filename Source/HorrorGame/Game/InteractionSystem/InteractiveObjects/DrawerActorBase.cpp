@@ -9,10 +9,12 @@
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DrawerDataAsset.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ADrawerActorBase::ADrawerActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
@@ -103,6 +105,30 @@ void ADrawerActorBase::OnConstruction(const FTransform& Transform)
 void ADrawerActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bMoving)
+	{
+		const FVector CurrentLocation = DrawerRootComponent->GetRelativeLocation();
+		const FVector TargetLocation = FVector(MovingTargetDepth, CurrentLocation.Y, CurrentLocation.Z);
+		const FVector NewLocation = UKismetMathLibrary::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, AutoOpenSpeed);
+		if (FMath::IsNearlyEqual(FMath::Abs(CurrentLocation.X), FMath::Abs(MovingTargetDepth), 0.1f))
+		{
+			DrawerRootComponent->SetRelativeLocation(TargetLocation);
+			StopMoving();
+			OnQuickOpenCloseComplete.Broadcast(MovingTargetDepth);
+		}
+		else
+		{
+			DrawerRootComponent->SetRelativeLocation(NewLocation);
+		}
+	}
+}
+
+void ADrawerActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+{
+	if (bDragged) return;
+	if (bMoving) StopMoving();
+	const float TargetDepth = CalculateDepth();
+	StartMoving(TargetDepth);
 }
 
 void ADrawerActorBase::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset)
@@ -116,6 +142,7 @@ void ADrawerActorBase::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAss
 		}
 		MaxExtendDistance = DrawerAsset->MaxExtendDistance;
 		DragMagnitude = DrawerAsset->DragMagnitude;
+		AutoOpenSpeed = DrawerAsset->QuickOpenSpeed;
 	}
 }
 
@@ -176,5 +203,38 @@ void ADrawerActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 	{
 		ReloadDrawerAsset();
 	}
+}
+
+bool ADrawerActorBase::IsMoving() const
+{
+	if (bDragged || bMoving) return true;
+	return false;
+}
+
+void ADrawerActorBase::StartMoving(float TargetDepth)
+{
+	if (IsMoving()) return;
+	bMoving = true;
+
+	const FVector CurrentLocation = DrawerRootComponent->GetRelativeLocation();
+	MovingStartDepth = CurrentLocation.X;
+	MovingTargetDepth = FMath::Clamp(TargetDepth, 0.0f, MaxExtendDistance);
+	SetActorTickEnabled(true);
+}
+
+void ADrawerActorBase::StopMoving()
+{
+	SetActorTickEnabled(false);
+	bMoving = false;
+}
+
+float ADrawerActorBase::CalculateDepth() const
+{
+	const FVector CurrentLocation = DrawerRootComponent->GetRelativeLocation();
+	const FVector ClosedLocation = FVector(0.0f, CurrentLocation.Y, CurrentLocation.Z);
+	const FVector OpenedLocation = FVector(MaxExtendDistance, CurrentLocation.Y, CurrentLocation.Z);
+	const float DistMin = FVector::Distance(CurrentLocation, ClosedLocation);
+	const float DistMax = FVector::Distance(CurrentLocation, OpenedLocation);
+	return DistMin >= DistMax ? 0.0f : MaxExtendDistance;
 }
 #endif
