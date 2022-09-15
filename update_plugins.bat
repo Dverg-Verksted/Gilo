@@ -1,13 +1,15 @@
+CLS
+echo Update project plugins...
 
-if not exist Plugins\GameConfigModel (
+@Echo Off
+If Not Exist Plugins\GameConfigModel (
 	git clone https://github.com/YuriTrofimov/GameConfigModel.git Plugins\GameConfigModel
-)
-else (
+) Else (
 	cd Plugins\GameConfigModel
 	git pull
 	cd ..\..\
 )
 
-clean.bat
-build_development.bat
+call clean.bat
+call build_development.bat
 pause

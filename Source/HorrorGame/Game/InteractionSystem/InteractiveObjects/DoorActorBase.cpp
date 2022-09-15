@@ -9,10 +9,14 @@
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/InteractionSystem/InteractionSettings.h"
 #include "Game/InteractionSystem/DataAssets/DoorDataAsset.h"
+#include "Kismet/KismetMathLibrary.h"
+
+#pragma optimize("", off)
 
 ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
@@ -89,6 +93,10 @@ void ADoorActorBase::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset
 		MinDoorAngle = DoorAsset->MinDoorAngle;
 		MaxDoorAngle = DoorAsset->MaxDoorAngle;
 		DragMagnitude = DoorAsset->DragMagnitude;
+		AutoOpenSpeed = DoorAsset->QuickOpenSpeed;
+		bDragEnabled = DoorAsset->bDragEnabled;
+		DoorOpenedAngle = DoorAsset->DoorOpenedAngle;
+		DoorClosedAngle = DoorAsset->DoorClosedAngle;
 	}
 }
 
@@ -103,10 +111,13 @@ void ADoorActorBase::OnHoverBegin_Implementation(APlayerController* PlayerContro
 		// Привязка к вводу
 		if (auto* EIC = Cast<UEnhancedInputComponent>(InputComponent))
 		{
-			EIC->BindAction(DoorDragAction, ETriggerEvent::Triggered, this, &ADoorActorBase::DoorDragActionHandler);
-			EIC->BindAction(GrabObjectAction, ETriggerEvent::Triggered, this, &ADoorActorBase::GrabObjectTriggeredHandler);
-			EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADoorActorBase::GrabObjectCompletedHandler);
-			EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADoorActorBase::GrabObjectCompletedHandler);
+			if (bDragEnabled)
+			{
+				EIC->BindAction(DoorDragAction, ETriggerEvent::Triggered, this, &ADoorActorBase::DoorDragActionHandler);
+				EIC->BindAction(GrabObjectAction, ETriggerEvent::Triggered, this, &ADoorActorBase::GrabObjectTriggeredHandler);
+				EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADoorActorBase::GrabObjectCompletedHandler);
+				EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADoorActorBase::GrabObjectCompletedHandler);
+			}
 			bInputBinded = true;
 		}
 	}
@@ -141,9 +152,83 @@ void ADoorActorBase::OnHoverEnd_Implementation(APlayerController* PlayerControll
 	}
 }
 
+void ADoorActorBase::OpenDoor()
+{
+	if (bDragged) return;
+	if (bMoving) StopMoving();
+	const float TargetAngle = FMath::Clamp(DoorOpenedAngle, MinDoorAngle, MaxDoorAngle);
+	StartMoving(TargetAngle);
+}
+
+void ADoorActorBase::CloseDoor()
+{
+	if (bDragged) return;
+	if (bMoving) StopMoving();
+	const float TargetAngle = FMath::Clamp(DoorClosedAngle, MinDoorAngle, MaxDoorAngle);
+	StartMoving(TargetAngle);
+}
+
 void ADoorActorBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bMoving)
+	{
+		const FRotator CurrentRotation = DoorRootComponent->GetRelativeRotation();
+		const FRotator TargetRotation = FRotator(0.0f, MovingTargetAngle, 0.0f);
+		const FRotator NewRotation = UKismetMathLibrary::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, AutoOpenSpeed);
+		if (FMath::IsNearlyEqual(FMath::Abs(CurrentRotation.Yaw), FMath::Abs(MovingTargetAngle), 0.1f))
+		{
+			DoorRootComponent->SetRelativeRotation(TargetRotation);
+			StopMoving();
+			OnQuickOpenCloseComplete.Broadcast(MovingTargetAngle);
+		}
+		else
+		{
+			DoorRootComponent->SetRelativeRotation(NewRotation);
+		}
+	}
+}
+
+bool ADoorActorBase::IsMoving() const
+{
+	if (bDragged || bMoving) return true;
+	return false;
+}
+
+void ADoorActorBase::StartMoving(float TargetAngle)
+{
+	if (IsMoving()) return;
+	bMoving = true;
+	const FRotator CurrentRot = DoorRootComponent->GetRelativeRotation();
+	MovingStartAngle = CurrentRot.Yaw;
+	MovingTargetAngle = FMath::ClampAngle(TargetAngle, MinDoorAngle, MaxDoorAngle);
+	SetActorTickEnabled(true);
+}
+
+void ADoorActorBase::StopMoving()
+{
+	SetActorTickEnabled(false);
+	bMoving = false;
+}
+
+float ADoorActorBase::CalculateOpenAngle() const
+{
+	const FRotator CurrentRot = DoorRootComponent->GetRelativeRotation();
+	const FRotator ClosedRotation = FRotator(0.0f, DoorClosedAngle, 0.0f);
+	const FRotator OpenedRotation = FRotator(0.0f, DoorOpenedAngle, 0.0f);
+	const float DistMin = UKismetMathLibrary::Quat_AngularDistance(CurrentRot.Quaternion(), ClosedRotation.Quaternion());
+	const float DistMax = UKismetMathLibrary::Quat_AngularDistance(CurrentRot.Quaternion(), OpenedRotation.Quaternion());
+	float Angle = DistMin >= DistMax ? DoorClosedAngle : DoorOpenedAngle;
+	Angle = FMath::Clamp(Angle, MinDoorAngle, MaxDoorAngle);
+	return Angle;
+}
+
+void ADoorActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+{
+	if (bDragged) return;
+	if (bMoving) StopMoving();
+	const float TargetAngle = CalculateOpenAngle();
+	StartMoving(TargetAngle);
 }
 
 void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
@@ -178,3 +263,5 @@ void ADoorActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChang
 	}
 }
 #endif
+
+#pragma optimize("", on)

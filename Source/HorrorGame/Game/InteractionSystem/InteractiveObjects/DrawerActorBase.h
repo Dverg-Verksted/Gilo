@@ -18,6 +18,12 @@ class HORRORGAME_API ADrawerActorBase : public AActor, public IInteractiveObject
 public:
 	ADrawerActorBase(const FObjectInitializer& ObjectInitializer);
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickOpenCloseCompleteHandler, float, TargetDepth);
+
+	/* Событие вызывается по завершении автоматического открытия/закрытия ящика */
+	UPROPERTY(BlueprintAssignable)
+	FOnQuickOpenCloseCompleteHandler OnQuickOpenCloseComplete;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 
@@ -38,6 +44,10 @@ public:
 	/* Коэффициент выдвижения */
 	UPROPERTY(EditDefaultsOnly, Category = "Drawer")
 	float DragMagnitude = 10.0f;
+
+	/* Скорость автоматического открытия */
+	UPROPERTY(EditDefaultsOnly, Category = "InteractiveObjects|Door")
+	float AutoOpenSpeed = 5.0f;
 
 	/* Действие открытия ящика */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -84,6 +94,7 @@ protected:
 public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnUseObject_Implementation(APlayerController* PlayerController) override;
 
 	// Interactive object interface BEGIN
 	virtual void InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset) override;
@@ -97,9 +108,24 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
+	/* Возвращает TRUE - Если дверь сейчас движется */
+	FORCEINLINE bool IsMoving() const;
+
 private:
 	/* TRUE - Если уже привязались к вводу */
 	bool bInputBinded = false;
-	/* TRUE - Если двигаем ящик */
+	/* TRUE - Если двигаем ящик вручную (с помощью движений мыши/контроллера) */
 	bool bDragged = false;
+	/* TRUE - Если дверь дверь в процессе открытия/закрытия */
+	bool bMoving = false;
+	/* Глубина выдвижения, с которой было начато движение */
+	float MovingStartDepth = 0.0f;
+	/* Требуемая глубина выдвижения ящика */
+	float MovingTargetDepth = 0.0f;
+	/* Начать движение ящика  */
+	void StartMoving(float TargetDepth);
+	/* Остановить автоматическое открытие/закрытие ящика */
+	void StopMoving();
+	/* Вычисляет глубину, максимально удаленную от текущей глубины выдвижения ящика */
+	float CalculateDepth() const;
 };
