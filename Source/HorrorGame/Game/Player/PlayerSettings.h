@@ -79,14 +79,6 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Перемещение", DisplayName = "Сила прыжка", meta = (ToolTip = "Сила прыжка (вместе с гравитацией влияет на высоту)"))
 	float JumpVelocity;
 
-	/* Виджет телефона */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Телефон", DisplayName = "Виджет телефона", meta = (ToolTip = "Класс виджета телефона", AllowedClasses = "UserWidget"))
-	FSoftClassPath PhoneWidget;
-
-	/* Z-order телефона */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Телефон", DisplayName = "Z-order телефона", meta = (ToolTip = "Z-order телефона"))
-	int32 PhoneZOrder = 1000;
-
 	/** Настройки привязки клавишь для разных устройств ввода*/
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление", meta = (ToolTip = "Настройки привязки клавиш"))
 	TArray<FInputMappingSetup> InputSetups;

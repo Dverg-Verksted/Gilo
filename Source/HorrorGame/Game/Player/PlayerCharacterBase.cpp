@@ -108,19 +108,9 @@ void APlayerCharacterBase::BeginPlay()
 	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
 
-void APlayerCharacterBase::DestroyPhoneWidget()
-{
-	if (PhoneWidget)
-	{
-		PhoneWidget->RemoveFromParent();
-		PhoneWidget = nullptr;
-	}
-}
-
 void APlayerCharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	DestroyPhoneWidget();
 }
 
 bool APlayerCharacterBase::InitInputMappings() const
@@ -164,7 +154,6 @@ void APlayerCharacterBase::PawnClientRestart()
 		InteractionComponent->OnPlayerReady();
 		InteractionComponent->StartTrace();
 	}
-	CreatePhoneWidget();
 }
 
 void APlayerCharacterBase::OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust)
@@ -177,22 +166,6 @@ void APlayerCharacterBase::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfH
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	CameraCrouchOffset = FVector::ZeroVector;
-}
-
-void APlayerCharacterBase::TogglePhone()
-{
-	ensure(PhoneWidget);
-	if (!PhoneWidget) return;
-
-	if (bPhoneOpened)
-	{
-		PhoneWidget->RemoveFromParent();
-	}
-	else
-	{
-		PhoneWidget->AddToViewport(PhoneWidgetZOrder);
-	}
-	bPhoneOpened = !bPhoneOpened;
 }
 
 void APlayerCharacterBase::ToggleSprintEnabled(bool bEnabled)
@@ -260,36 +233,6 @@ void APlayerCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		PlayerEnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::JumpActionHandler);
 	}
-
-	if (TogglePhoneAction)
-	{
-		PlayerEnhancedInputComponent->BindAction(TogglePhoneAction, ETriggerEvent::Triggered, this, &APlayerCharacterBase::TogglePhoneActionHandler);
-	}
-}
-
-void APlayerCharacterBase::CreatePhoneWidget()
-{
-	if (PhoneWidget)
-	{
-		DestroyPhoneWidget();
-	}
-
-	const auto* AssetManager = UHorrorAssetManager::Get();
-	ensure(AssetManager);
-	if (!AssetManager) return;
-
-	auto* PlayerSettings = UPlayerSettings::Get();
-	ensure(PlayerSettings);
-	if (!PlayerSettings) return;
-
-	UClass* WidgetClass = Cast<UClass>(AssetManager->LoadAssetSync(PlayerSettings->PhoneWidget));
-	ensure(WidgetClass);
-
-	if (!PlayerController) return;
-	PhoneWidget = CreateWidget<UUserWidget>(PlayerController, WidgetClass, FName(TEXT("PlayerPhoneWidget")));
-	ensure(PhoneWidget);
-	if (!PhoneWidget) return;
-	PhoneWidgetZOrder = PlayerSettings->PhoneZOrder;
 }
 
 void APlayerCharacterBase::MoveStartActionHandler(const FInputActionValue& ActionValue)
@@ -430,11 +373,6 @@ void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValu
 {
 	PlayerSprintComponent->ToggleSprint(false);
 	WalkCameraShakeComponent->ToggleSprinting(false);
-}
-
-void APlayerCharacterBase::TogglePhoneActionHandler(const FInputActionValue& InputActionValue)
-{
-	TogglePhone();
 }
 
 #pragma optimize("", on)
