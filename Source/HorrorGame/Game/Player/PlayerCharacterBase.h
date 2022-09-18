@@ -87,9 +87,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
 	TObjectPtr<UInputAction> JumpAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input", AdvancedDisplay)
-	TObjectPtr<UInputAction> TogglePhoneAction;
-
 	/** Макс. величина замедления перемещения при наклоне */
 	UPROPERTY()
 	float MaxPeekSlowDown;
@@ -113,13 +110,6 @@ protected:
 	UPROPERTY()
 	APlayerController* PlayerController;
 
-	UPROPERTY()
-	UUserWidget* PhoneWidget = nullptr;
-	int32 PhoneWidgetZOrder = 1000;
-	/* TRUE - Если сейчас демонстрируется виджет телефона */
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	bool bPhoneOpened = false;
-
 	/* TRUE - Если игрок может бегать */
 	bool bSprintEnabled = true;
 
@@ -135,8 +125,6 @@ protected:
 	virtual void PawnClientRestart() override;
 	virtual void OnStartCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
-	/* Показывает/скрывает виджет телефона */
-	void TogglePhone();
 
 public:
 	/* Включение/отключение возможности бега у игрока */
@@ -164,11 +152,6 @@ private:
 
 	/* Текущее значение смещения камеры в наклоне */
 	FVector CameraPeekOffset;
-
-	/* Создаем виджет телефона (если он еще не создан) */
-	void CreatePhoneWidget();
-	/* Очистка и удаление виджета телефона */
-	void DestroyPhoneWidget();
 
 	/** Обработчик начала ходьбы */
 	UFUNCTION()
@@ -215,8 +198,4 @@ private:
 	/** Обработчик ввода прыжка */
 	UFUNCTION()
 	void JumpActionHandler(const FInputActionValue& ActionValue);
-
-	/** Обработчик демонстрации телефона */
-	UFUNCTION()
-	void TogglePhoneActionHandler(const FInputActionValue& InputActionValue);
 };
