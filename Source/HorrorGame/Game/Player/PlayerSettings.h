@@ -83,6 +83,14 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, AdvancedDisplay, Category = "Управление", meta = (ToolTip = "Настройки привязки клавиш"))
 	TArray<FInputMappingSetup> InputSetups;
 
+	/* Максимальный запас здоровья */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Здоровье", DisplayName = "Макс. запас здоровья", meta = (ToolTip = "Максимальный запас здоровья игрока"))
+	float MaxHealth;
+
+	/* Задержка полного восстановления здоровья */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Здоровье", DisplayName = "Задержка регенерации", meta = (ToolTip = "Время от урона до полного восстановления здоровья"))
+	float HealthRegenDelay;
+
 	static FORCEINLINE const UPlayerSettings* Get()
 	{
 		const UPlayerSettings* Settings = GetDefault<UPlayerSettings>();

@@ -20,4 +20,6 @@ UPlayerSettings::UPlayerSettings()
 	StaminaDrainRate = 1.0f;
 	StaminaRestoreRate = 0.3f;
 	JumpVelocity = 420.0f;
+	MaxHealth = 100.0f;
+	HealthRegenDelay = 7.0f;
 }
