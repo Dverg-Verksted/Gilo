@@ -15,7 +15,7 @@ class HORRORGAME_API UPlayerSprintComponent : public UActorComponent
 public:
 	UPlayerSprintComponent();
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStaminaChangedEvent, float, Stamina);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnStaminaChangedEvent, float, Stamina, float, Fatigue);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnExhaustedChangedEvent, bool, Exhausted, float, Stamina);
 
