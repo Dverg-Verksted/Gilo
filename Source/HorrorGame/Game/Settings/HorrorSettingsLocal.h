@@ -9,6 +9,9 @@
 #include "Game/Input/HorrorInputTypes.h"
 #include "HorrorSettingsLocal.generated.h"
 
+class USoundControlBus;
+class USoundControlBusMix;
+
 /**
  * Настройки игры, которые хранятся локально на машине пользователя в файле конфигурации
  */
@@ -22,6 +25,24 @@ public:
 
 	/** Возвращает текущий экземпляр настроек игры */
 	static UHorrorSettingsLocal* Get();
+
+	UFUNCTION(BlueprintPure, Category = "GameSettings|Audio")
+	float GetOverallVolume() const { return AudioVolume_Overall; }
+
+	UFUNCTION(BlueprintCallable, Category = "GameSettings|Audio")
+	void SetOverallVolume(float InVolume);
+
+	UFUNCTION(BlueprintPure, Category = "GameSettings|Audio")
+	float GetMusicVolume() const;
+
+	UFUNCTION(BlueprintCallable, Category = "GameSettings|Audio")
+	void SetMusicVolume(float InVolume);
+
+	UFUNCTION(BlueprintPure, Category = "GameSettings|Audio")
+	float GetFXVolume() const { return AudioVolume_FX; }
+
+	UFUNCTION(BlueprintCallable, Category = "GameSettings|Audio")
+	void SetFXVolume(float InVolume);
 
 	/** Обновление привязки клавиши клавиатуры к действию
 	 * @param PlayerController Контроллер игрока
@@ -65,6 +86,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Settings|Input")
 	static void GetActionMappedKey(FName ActionName, bool& bSuccess, FKey& Key, FText& KeyName);
 
+	virtual void ApplyNonResolutionSettings() override;
+
 private:
 	/** Коллекция загруженных конфигурация привязок клавиш */
 	UPROPERTY(VisibleAnywhere)
@@ -73,4 +96,29 @@ private:
 	/** Коллекция пользовательских привязок клавиш клавиатуры. Имя действия-Клавиша клавиатуры */
 	UPROPERTY(Config)
 	TMap<FName, FKey> CustomKeyboardConfig;
+
+	/* Общий уровень громкости */
+	UPROPERTY(Config)
+	float AudioVolume_Overall = 1.0f;
+	/* Уровень громкости музыки */
+	UPROPERTY(Config)
+	float AudioVolume_Music = 1.0f;
+	/* Уровень громкости звуковых эффектов */
+	UPROPERTY(Config)
+	float AudioVolume_FX = 1.0f;
+
+	UPROPERTY(Transient)
+	USoundControlBusMix* ControlBusMix = nullptr;
+	UPROPERTY(Transient)
+	USoundControlBus* OverallControlBus = nullptr;
+	UPROPERTY(Transient)
+	USoundControlBus* MusicControlBus = nullptr;
+	UPROPERTY(Transient)
+	USoundControlBus* SoundFXControlBus = nullptr;
+	bool bSoundControlBusMixLoaded = false;
+
+	/* Загрузка шин управления звуками */
+	void LoadAudioControlBusses();
+	/* Установка уровня громкости для шины */
+	void SetVolumeForControlBus(USoundControlBus* InSoundControlBus, float InVolume);
 };

@@ -10,7 +10,7 @@ public class HorrorGame : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "DataRegistry" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "CommonInput", "CommonUI", "UMG", "RHI", "GameConfigModel", "PreLoadScreen", "RenderCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "CommonInput", "CommonUI", "UMG", "RHI", "GameConfigModel", "PreLoadScreen", "RenderCore", "AudioModulation" });
 
 		PublicIncludePaths.AddRange(new string[] { "HorrorGame" });
 
