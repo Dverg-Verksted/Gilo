@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "EnhancedInputComponent.h"
 #include "GameplayTagAssetInterface.h"
+#include "HealthComponent.h"
 #include "PlayerSprintComponent.h"
 #include "WalkCameraShakeComponent.h"
 #include "Camera/CameraComponent.h"
@@ -51,6 +52,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPhysicsHandleComponent> PhysicsHandleComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
@@ -106,8 +110,14 @@ protected:
 	UPROPERTY()
 	APlayerController* PlayerController;
 
+	/* TRUE - Если игрок может бегать */
+	bool bSprintEnabled = true;
+
+	UFUNCTION()
+	void OnPlayerDeathHandler();
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	/** Инициализация привязок клавиш
 	 * @return TRUE - Если инициализация выполнена успешно
 	 */
@@ -117,6 +127,10 @@ protected:
 	virtual void OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeightAdjust) override;
 
 public:
+	/* Включение/отключение возможности бега у игрока */
+	UFUNCTION(BlueprintCallable)
+	void ToggleSprintEnabled(bool bEnabled);
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
