@@ -9,7 +9,7 @@
 #include "AIControllerBase.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class HORRORGAME_API AAIControllerBase : public AAIController
@@ -17,8 +17,7 @@ class HORRORGAME_API AAIControllerBase : public AAIController
 	GENERATED_BODY()
 
 public:
-	
-	AAIControllerBase(const FObjectInitializer &ObjectInitializer);
+	AAIControllerBase(const FObjectInitializer& ObjectInitializer);
 
 	class UAISenseConfig_Sight* Sight;
 
@@ -37,32 +36,31 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CharacterIsSee(bool bStay);
 
-//	UFUNCTION()
-//	void OnPawnDetected(const TArray<AActor*> &DetectedPawns);
+	//	UFUNCTION()
+	//	void OnPawnDetected(const TArray<AActor*> &DetectedPawns);
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float ISightRadius;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float ISightAge;
-	
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "AI")
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float ILoseSightRadius = ISightRadius + 500.0f;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	float IFieldOfView;
 
-	UPROPERTY(VisibleAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	bool bIsPlayerDetected;
 
-	UPROPERTY(VisibleAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	float DistanceToPlayer;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category = "AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	UAnimMontage* Montage;
 
 protected:
-
 	virtual void BeginPlay() override;
 
 	class APlayerCharacterBase* ActorBase;
@@ -74,5 +72,4 @@ protected:
 	bool bIsStay;
 
 private:
-	
 };

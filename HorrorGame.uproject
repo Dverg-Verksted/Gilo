@@ -215,5 +215,8 @@
 			"Name": "Metasound",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Windows"
 	]
 }

@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "Game/BotAI/AIControllerBase.h"
 #include "Game/Player/PlayerCharacterBase.h"
 #include "Game/BotAI/Waypoint.h"
@@ -14,7 +13,7 @@ void AAIControllerBase::BeginPlay()
 {
 	Super::BeginPlay();
 	ABotBase* BotBase = Cast<ABotBase>(GetPawn());
-	if(BotBase)
+	if (BotBase)
 	{
 		Bot = BotBase;
 	}
@@ -24,21 +23,21 @@ void AAIControllerBase::BeginPlay()
 void AAIControllerBase::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if(bIsStay)
+	if (bIsStay)
 	{
 		StopMovement();
-		UE_LOG(LogTemp,Error,TEXT("STOP %b"),bIsStay);
+		UE_LOG(LogTemp, Error, TEXT("STOP %b"), bIsStay);
 	}
 	else
 	{
-		UE_LOG(LogTemp,Error,TEXT("STOP %b"),bIsStay);
-		if(bStimulusSensed)
+		UE_LOG(LogTemp, Error, TEXT("STOP %b"), bIsStay);
+		if (bStimulusSensed)
 		{
-			MoveToActor(ActorBase,50.0f);
+			MoveToActor(ActorBase, 50.0f);
 		}
 		else
 		{
-			if(Bot->NextWaypoint != nullptr && bStimulusSensed == false)
+			if (Bot->NextWaypoint != nullptr && bStimulusSensed == false)
 			{
 				MoveToActor(Bot->NextWaypoint, 0.0f);
 			}
@@ -52,7 +51,7 @@ AAIControllerBase::AAIControllerBase(const FObjectInitializer& ObjectInitializer
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerception"));
 
 	Sight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
-	if(const UBotSettings* BotSettings = GetDefault<UBotSettings>())
+	if (const UBotSettings* BotSettings = GetDefault<UBotSettings>())
 	{
 		Sight->SightRadius = ISightRadius = BotSettings->ISightRadius;
 		Sight->SetMaxAge(ISightAge = BotSettings->ISightAge);
@@ -68,7 +67,7 @@ AAIControllerBase::AAIControllerBase(const FObjectInitializer& ObjectInitializer
 
 void AAIControllerBase::OnPerception(AActor* Actor, FAIStimulus Stimulus)
 {
-	
+
 	auto d = Cast<APlayerCharacterBase>(Actor);
 	if (IsValid(Cast<APlayerCharacterBase>(Actor)))
 	{
@@ -76,7 +75,6 @@ void AAIControllerBase::OnPerception(AActor* Actor, FAIStimulus Stimulus)
 		bStimulusSensed = Stimulus.WasSuccessfullySensed();
 		DistanceToPlayer = GetPawn()->GetDistanceTo(Actor);
 	}
-	
 }
 
 FRotator AAIControllerBase::GetControlRotation() const
@@ -91,11 +89,10 @@ FRotator AAIControllerBase::GetControlRotation() const
 void AAIControllerBase::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AAIControllerBase::OnPerception); 
+	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &AAIControllerBase::OnPerception);
 }
 
 void AAIControllerBase::CharacterIsSee(bool bStay)
 {
 	bIsStay = bStay;
 }
-

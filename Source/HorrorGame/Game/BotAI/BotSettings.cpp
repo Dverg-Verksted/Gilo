@@ -1,6 +1,5 @@
 // It is owned by the company Dverg Verksted.
 
-
 #include "BotSettings.h"
 
 UBotSettings::UBotSettings()
@@ -14,4 +13,3 @@ UBotSettings::UBotSettings()
 	bIsPlayerDetected = false;
 	DistanceToPlayer = 0.0f;
 }
-

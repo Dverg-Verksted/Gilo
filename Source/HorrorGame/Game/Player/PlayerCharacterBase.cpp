@@ -79,9 +79,6 @@ void APlayerCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-
-	
-
 	if (PeekCurve)
 	{
 		float PeekCurveMinTime = 0.0f;
@@ -381,8 +378,5 @@ void APlayerCharacterBase::SprintStopHandler(const FInputActionValue& ActionValu
 	PlayerSprintComponent->ToggleSprint(false);
 	WalkCameraShakeComponent->ToggleSprinting(false);
 }
-
-
-
 
 #pragma optimize("", on)

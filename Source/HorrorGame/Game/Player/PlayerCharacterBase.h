@@ -61,7 +61,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
 
-
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
 	FVector PeekLeftOffset;
