@@ -4,6 +4,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Game/BotAI/AIControllerBase.h"
 #include "Game/GameModes/HorrorGameGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -11,6 +13,8 @@
 #include "Game/System/HorrorAssetManager.h"
 #include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Game/BotAI/BotBase.h"
+#include "Runtime/AIModule/Classes/Perception/AISenseConfig_Sight.h"
 
 #pragma optimize("", off)
 

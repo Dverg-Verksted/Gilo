@@ -20,4 +20,11 @@ UPlayerSettings::UPlayerSettings()
 	StaminaDrainRate = 1.0f;
 	StaminaRestoreRate = 0.3f;
 	JumpVelocity = 420.0f;
+	MaxHealth = 100.0f;
+	HealthRegenDelay = 7.0f;
+
+	ISightRadius = 2000.0f;
+	ISightAge = 2.0f;
+	ILoseSightRadius = ISightRadius + 500.0f;
+	IFieldOfView = 90.0f;
 }
