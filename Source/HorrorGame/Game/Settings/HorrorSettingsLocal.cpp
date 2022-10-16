@@ -1,8 +1,13 @@
 ﻿// It is owned by the company Dverg Verksted.
 
 #include "Game/Settings/HorrorSettingsLocal.h"
+
+#include "AudioModulationStatics.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputMappingContext.h"
+#include "SoundControlBus.h"
+#include "SoundControlBusMix.h"
+#include "Game/Audio/HorrorGameAudioSettings.h"
 #include "Game/Player/PlayerSettings.h"
 #include "Game/System/HorrorAssetManager.h"
 
@@ -11,6 +16,65 @@ UHorrorSettingsLocal::UHorrorSettingsLocal() {}
 UHorrorSettingsLocal* UHorrorSettingsLocal::Get()
 {
 	return GEngine ? CastChecked<UHorrorSettingsLocal>(GEngine->GetGameUserSettings()) : nullptr;
+}
+
+void UHorrorSettingsLocal::SetOverallVolume(float InVolume)
+{
+	AudioVolume_Overall = InVolume;
+	// Check to see if references to the control buses and control bus mixes have been loaded yet
+	// Will likely need to be loaded if this function is the first time a setter has been called from the UI
+	if (!bSoundControlBusMixLoaded)
+	{
+		LoadAudioControlBusses();
+	}
+
+	ensureMsgf(bSoundControlBusMixLoaded, TEXT("UserControlBusMix Settings Failed to Load."));
+
+	if (OverallControlBus)
+	{
+		SetVolumeForControlBus(OverallControlBus, AudioVolume_Overall);
+	}
+}
+
+float UHorrorSettingsLocal::GetMusicVolume() const
+{
+	return AudioVolume_Music;
+}
+
+void UHorrorSettingsLocal::SetMusicVolume(float InVolume)
+{
+	AudioVolume_Music = InVolume;
+	// Check to see if references to the control buses and control bus mixes have been loaded yet
+	// Will likely need to be loaded if this function is the first time a setter has been called from the UI
+	if (!bSoundControlBusMixLoaded)
+	{
+		LoadAudioControlBusses();
+	}
+
+	ensureMsgf(bSoundControlBusMixLoaded, TEXT("UserControlBusMix Settings Failed to Load."));
+
+	if (MusicControlBus)
+	{
+		SetVolumeForControlBus(MusicControlBus, AudioVolume_Music);
+	}
+}
+
+void UHorrorSettingsLocal::SetFXVolume(float InVolume)
+{
+	AudioVolume_FX = InVolume;
+	// Check to see if references to the control buses and control bus mixes have been loaded yet
+	// Will likely need to be loaded if this function is the first time a setter has been called from the UI
+	if (!bSoundControlBusMixLoaded)
+	{
+		LoadAudioControlBusses();
+	}
+
+	ensureMsgf(bSoundControlBusMixLoaded, TEXT("UserControlBusMix Settings Failed to Load."));
+
+	if (SoundFXControlBus)
+	{
+		SetVolumeForControlBus(SoundFXControlBus, AudioVolume_FX);
+	}
 }
 
 void UHorrorSettingsLocal::UpdateKeyboardBinding(APlayerController* PlayerController, const FName MappingName, const FKey NewKey, bool bSaveSettings)
@@ -170,3 +234,99 @@ void UHorrorSettingsLocal::GetActionMappedKey(FName ActionName, bool& bSuccess, 
 		}
 	}
 }
+
+void UHorrorSettingsLocal::ApplyNonResolutionSettings()
+{
+	Super::ApplyNonResolutionSettings();
+
+	// Check if Control Bus Mix references have been loaded,
+	// Might be false if applying non resolution settings without touching any of the setters from UI
+	if (!bSoundControlBusMixLoaded)
+	{
+		LoadAudioControlBusses();
+	}
+	if (OverallControlBus)
+	{
+		SetVolumeForControlBus(OverallControlBus, AudioVolume_Overall);
+	}
+	if (MusicControlBus)
+	{
+		SetVolumeForControlBus(MusicControlBus, AudioVolume_Music);
+	}
+	if (SoundFXControlBus)
+	{
+		SetVolumeForControlBus(SoundFXControlBus, AudioVolume_FX);
+	}
+}
+
+void UHorrorSettingsLocal::LoadAudioControlBusses()
+{
+	if (!GEngine) return;
+	const UWorld* World = GEngine->GetCurrentPlayWorld();
+	if (!World) return;
+	const auto* GameAudioSettings = GetDefault<UHorrorGameAudioSettings>();
+	if (!GameAudioSettings) return;
+
+	if (UObject* ObjPath = GameAudioSettings->OverallVolumeControlBus.TryLoad())
+	{
+		if (USoundControlBus* SoundControlBus = Cast<USoundControlBus>(ObjPath))
+		{
+			OverallControlBus = SoundControlBus;
+		}
+		else
+		{
+			ensureMsgf(SoundControlBus, TEXT("Overall Control Bus reference missing from SpiderGame Audio Settings."));
+		}
+	}
+
+	if (UObject* ObjPath = GameAudioSettings->MusicVolumeControlBus.TryLoad())
+	{
+		if (auto* SoundControlBus = Cast<USoundControlBus>(ObjPath))
+		{
+			MusicControlBus = SoundControlBus;
+		}
+		else
+		{
+			ensureMsgf(SoundControlBus, TEXT("Music Control Bus reference missing from SpiderGame Audio Settings."));
+		}
+	}
+
+	if (UObject* ObjPath = GameAudioSettings->FXVolumeControlBus.TryLoad())
+	{
+		if (USoundControlBus* SoundControlBus = Cast<USoundControlBus>(ObjPath))
+		{
+			SoundFXControlBus = SoundControlBus;
+		}
+		else
+		{
+			ensureMsgf(SoundControlBus, TEXT("SoundFX Control Bus reference missing from SpiderGame Audio Settings."));
+		}
+	}
+
+	if (UObject* ObjPath = GameAudioSettings->UserSettingsControlBusMix.TryLoad())
+	{
+		if (USoundControlBusMix* SoundControlBusMix = Cast<USoundControlBusMix>(ObjPath))
+		{
+			ControlBusMix = SoundControlBusMix;
+
+			const FSoundControlBusMixStage OverallControlBusMixStage = UAudioModulationStatics::CreateBusMixStage(World, OverallControlBus, AudioVolume_Overall);
+			const FSoundControlBusMixStage MusicControlBusMixStage = UAudioModulationStatics::CreateBusMixStage(World, MusicControlBus, AudioVolume_Music);
+			const FSoundControlBusMixStage SoundFXControlBusMixStage = UAudioModulationStatics::CreateBusMixStage(World, SoundFXControlBus, AudioVolume_FX);
+
+			TArray<FSoundControlBusMixStage> ControlBusMixStageArray;
+			ControlBusMixStageArray.Add(OverallControlBusMixStage);
+			ControlBusMixStageArray.Add(MusicControlBusMixStage);
+			ControlBusMixStageArray.Add(SoundFXControlBusMixStage);
+
+			UAudioModulationStatics::UpdateMix(World, ControlBusMix, ControlBusMixStageArray);
+
+			bSoundControlBusMixLoaded = true;
+		}
+		else
+		{
+			ensureMsgf(SoundControlBusMix, TEXT("User Settings Control Bus Mix reference missing from SpiderGame Audio Settings."));
+		}
+	}
+}
+
+void UHorrorSettingsLocal::SetVolumeForControlBus(USoundControlBus* InSoundControlBus, float InVolume) {}

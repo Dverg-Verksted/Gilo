@@ -204,6 +204,7 @@ void ADrawerActorBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		ReloadDrawerAsset();
 	}
 }
+#endif
 
 bool ADrawerActorBase::IsMoving() const
 {
@@ -237,4 +238,3 @@ float ADrawerActorBase::CalculateDepth() const
 	const float DistMax = FVector::Distance(CurrentLocation, OpenedLocation);
 	return DistMin >= DistMax ? 0.0f : MaxExtendDistance;
 }
-#endif

@@ -35,6 +35,10 @@ protected:
 	UPROPERTY()
 	float MaxHealth = 100.0f;
 
+	/* Время от урона до полного восстановления здоровья */
+	UPROPERTY()
+	float HealthRegenDelay = 7.0f;
+
 	/* Задает здоровье игрока */
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float InHealth);
@@ -54,4 +58,9 @@ public:
 	/* Возвращает макс. здоровье игрока */
 	UFUNCTION(BlueprintPure, Category = "Player")
 	float GetPlayerMaxHealth() const { return MaxHealth; };
+
+private:
+	/* Таймер восстановления здоровья */
+	FTimerHandle RegenTimerHandle;
+	void ClearHealthRegenTimer();
 };
