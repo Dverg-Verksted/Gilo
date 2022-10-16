@@ -16,6 +16,8 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "PlayerMappableInputConfig.h"
+#include "Perception/AISightTargetInterface.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "PlayerCharacterBase.generated.h"
 
 /** Состояние наклона персонажа */
@@ -58,6 +60,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GameplayTags", Meta = (DisplayName = "GameplayTags", ExposeOnSpawn = true), SaveGame)
 	FGameplayTagContainer GameplayTags;
+
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Camera")
@@ -134,6 +137,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const override { TagContainer = GameplayTags; }
+
+	class AAngelBot* ActorBase;
 
 private:
 	/* Трансформ камеры по-умолчанию */

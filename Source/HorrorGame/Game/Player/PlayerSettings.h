@@ -91,6 +91,18 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Здоровье", DisplayName = "Задержка регенерации", meta = (ToolTip = "Время от урона до полного восстановления здоровья"))
 	float HealthRegenDelay;
 
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float ISightRadius;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float ISightAge;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (ToolTip = "Радиус начала потери видимости", ClampMax = 4000.0f, ClampMin = 1500.0f, UIMax = 4000.0f, UIMin = 1500.0f))
+	float ILoseSightRadius;
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float IFieldOfView;
+
 	static FORCEINLINE const UPlayerSettings* Get()
 	{
 		const UPlayerSettings* Settings = GetDefault<UPlayerSettings>();
