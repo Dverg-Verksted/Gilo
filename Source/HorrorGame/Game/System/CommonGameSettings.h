@@ -35,6 +35,13 @@ public:
 	UPROPERTY(Transient, EditAnywhere, Category = "LoadingScreen", AdvancedDisplay)
 	bool HoldLoadingScreenAdditionalSecsEvenInEditor = false;
 
+	/* Стартовый уровень игры */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category = "Game", DisplayName = "Стартовый уровень", meta = (ToolTip = "Стартовый уровень игры"))
+	FName MainGameLevel = NAME_None;
+
+	UFUNCTION(BlueprintPure, Category = "Game")
+	static FName GetGameStartLevel();
+
 	static FORCEINLINE const UCommonGameSettings* Get()
 	{
 		const UCommonGameSettings* Settings = GetDefault<UCommonGameSettings>();

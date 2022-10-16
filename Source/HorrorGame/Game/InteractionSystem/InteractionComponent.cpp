@@ -225,7 +225,7 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 		{
 			if (!Comp->IsAnyRigidBodyAwake())
 			{
-				//Если компонент уснул - пинаем этого урода
+				// Если компонент уснул - пинаем этого урода
 				Comp->WakeAllRigidBodies();
 			}
 			PhysicsHandleComponent->SetTargetLocationAndRotation(TargetLocation, GrabbedDesiredRotation);
