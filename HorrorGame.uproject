@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"DeveloperSettings",
-				"DataRegistry"
+				"DataRegistry",
+				"AIModule"
 			]
 		}
 	],
@@ -205,6 +206,17 @@
 		{
 			"Name": "CommonUI",
 			"Enabled": true
+		},
+		{
+			"Name": "AudioModulation",
+			"Enabled": true
+		},
+		{
+			"Name": "Metasound",
+			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Windows"
 	]
 }
