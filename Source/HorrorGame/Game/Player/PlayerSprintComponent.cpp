@@ -96,7 +96,8 @@ void UPlayerSprintComponent::UpdateStamina(float DeltaTime)
 	if (NewStaminaValue != CurrentStamina)
 	{
 		CurrentStamina = NewStaminaValue;
-		OnStaminaChanged.Broadcast(CurrentStamina);
+		const float Fatigue = FMath::Clamp(1.0f - CurrentStamina / MaxStaminaAmount, 0.0f, 1.0f);
+		OnStaminaChanged.Broadcast(CurrentStamina, Fatigue);
 	}
 	if (bNewExhausted != bExhausted)
 	{
