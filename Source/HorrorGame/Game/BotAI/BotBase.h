@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BotBase.generated.h"
 
-UCLASS(Abstract, NotPlaceable)
+UCLASS(Abstract)
 class HORRORGAME_API ABotBase : public ACharacter
 {
 	GENERATED_BODY()
