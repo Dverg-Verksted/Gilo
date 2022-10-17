@@ -22,6 +22,10 @@ public:
 		meta = (ToolTip = "Класс бота", AssetBundles = "classes", AllowedClasses = "BotBase"))
 	TSoftClassPtr<AActor> BotClass;
 
+	/* Скорость ходьбы бота */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Common", DisplayName = "Скорость ходьбы бота", meta = (ToolTip = "Скорость ходьбы бота"))
+	float BotWalkSpeed = 320.0f;
+
 protected:
 	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
 };

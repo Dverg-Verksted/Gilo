@@ -23,13 +23,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USceneComponent> SceneRoot;
 
+	/* Спаун и инициализация бота из дата ассета */
+	UFUNCTION(BlueprintNativeEvent, Category = "AI")
+	void InitFromAsset(const UPrimaryDataAsset* SourceAsset);
+	/* Возвращает координаты спауна бота в WorldSpace */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "AI")
+	void GetSpawnTransform(FTransform& SpawnTransform);
+
 	virtual void BeginPlay() override;
+private:
 	void SpawnBot();
 	void OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID);
-	/* Спаун и инициализация бота из дата ассета */
-	UFUNCTION(BlueprintNativeEvent)
-	void InitFromAsset(UPrimaryDataAsset* SourceAsset);
-	/* Возвращает координаты спауна бота в WorldSpace */
-	UFUNCTION(BlueprintNativeEvent)
-	void GetSpawnTransform(FTransform& SpawnTransform);
 };

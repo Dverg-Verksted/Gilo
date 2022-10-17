@@ -60,7 +60,7 @@ void ABotSpawner::OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID)
 	}
 }
 
-void ABotSpawner::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset)
+void ABotSpawner::InitFromAsset_Implementation(const UPrimaryDataAsset* SourceAsset)
 {
 	const auto* BotAsset = Cast<UBotDataAssetBase>(SourceAsset);
 	if (!BotAsset || !BotAsset->BotClass) return;
@@ -70,5 +70,11 @@ void ABotSpawner::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset)
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParameters.bDeferConstruction = true;
 	auto* BotActor = GetWorld()->SpawnActor<ABotBase>(BotAsset->BotClass.Get(), SpawnTransform, SpawnParameters);
+	if (BotActor)
+	{
+		BotActor->InitFromAsset(BotAsset);
+		BotActor->FinishSpawning(SpawnTransform);
+	}
 }

@@ -1,9 +1,9 @@
-// It is owned by the company Dverg Verksted.
+﻿// It is owned by the company Dverg Verksted.
 
 #include "Game/BotAI/BotBase.h"
-
 #include "TimerManager.h"
 #include "Game/BotAI/BotSettings.h"
+#include "Game/BotAI/DataAssets/BotDataAssetBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ABotBase::ABotBase()
@@ -60,4 +60,11 @@ float ABotBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, 
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABotBase::SetMovementSpeed, 1.0f, true);
 	GetCharacterMovement()->MaxWalkSpeed = CurrentWalkSpeed / SpeedParam;
 	return 0.0f;
+}
+
+void ABotBase::InitFromAsset_Implementation(const UBotDataAssetBase* BotAsset)
+{
+	if (!BotAsset) return;
+
+	GetCharacterMovement()->MaxWalkSpeed = BotAsset->BotWalkSpeed;
 }
