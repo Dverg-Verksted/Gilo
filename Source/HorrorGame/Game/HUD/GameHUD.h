@@ -20,7 +20,7 @@ public:
 
 	/* Вызов игрового меню */
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void ToggleGameMenu();
+	void ToggleGameMenu(bool bPauseGame = true);
 
 	/* Добавить меню в стек. Возвращает созданный виджет */
 	UFUNCTION(BlueprintCallable, Category = "UI")

@@ -53,7 +53,7 @@ void ABotSpawner::OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID)
 {
 	if (const auto* Manager = UAssetManager::GetIfValid())
 	{
-		if (auto* BotAsset = Cast<UBotDataAssetBase>(Manager->GetPrimaryAssetObject(LoadedAssetID)))
+		if (const auto* BotAsset = Cast<UBotDataAssetBase>(Manager->GetPrimaryAssetObject(LoadedAssetID)))
 		{
 			InitFromAsset_Implementation(BotAsset);
 		}
@@ -71,9 +71,9 @@ void ABotSpawner::InitFromAsset_Implementation(const UPrimaryDataAsset* SourceAs
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParameters.bDeferConstruction = true;
-	auto* BotActor = GetWorld()->SpawnActor<ABotBase>(BotAsset->BotClass.Get(), SpawnTransform, SpawnParameters);
-	if (BotActor)
+	if (auto* BotActor = GetWorld()->SpawnActor<ABotBase>(BotAsset->BotClass.Get(), SpawnTransform, SpawnParameters))
 	{
+		/* Инициализация бота */
 		BotActor->InitFromAsset(BotAsset);
 		BotActor->FinishSpawning(SpawnTransform);
 	}
