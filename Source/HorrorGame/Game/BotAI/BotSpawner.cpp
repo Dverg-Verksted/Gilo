@@ -7,24 +7,26 @@
 #include "Game/BotAI/BotBase.h"
 #include "Game/Common/AssetMetaRegistrySource.h"
 
-// Sets default values
-ABotSpawner::ABotSpawner()
+ABotSpawner::ABotSpawner(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	SetCanBeDamaged(false);
+	SetHidden(true);
+
+	SceneRoot = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("SceneRoot"));
+	RootComponent = SceneRoot;
 }
 
-// Called when the game starts or when spawned
 void ABotSpawner::BeginPlay()
 {
 	Super::BeginPlay();
 	SpawnBot();
 }
 
-// Called every frame
-void ABotSpawner::Tick(float DeltaTime)
+void ABotSpawner::GetSpawnTransform_Implementation(FTransform& SpawnTransform)
 {
-	Super::Tick(DeltaTime);
+	SpawnTransform = SceneRoot->GetComponentTransform();
 }
 
 void ABotSpawner::SpawnBot()
@@ -61,9 +63,12 @@ void ABotSpawner::OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID)
 void ABotSpawner::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset)
 {
 	const auto* BotAsset = Cast<UBotDataAssetBase>(SourceAsset);
-	if (BotAsset || !BotAsset->BotClass) return;
+	if (!BotAsset || !BotAsset->BotClass) return;
+
+	FTransform SpawnTransform;
+	GetSpawnTransform(SpawnTransform);
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	auto* BotActor = GetWorld()->SpawnActor<ABotBase>(BotAsset->BotClass.Get(), SpawnParameters);
+	auto* BotActor = GetWorld()->SpawnActor<ABotBase>(BotAsset->BotClass.Get(), SpawnTransform, SpawnParameters);
 }

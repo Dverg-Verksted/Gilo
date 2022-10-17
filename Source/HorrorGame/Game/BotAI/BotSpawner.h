@@ -7,28 +7,29 @@
 #include "DataRegistryId.h"
 #include "BotSpawner.generated.h"
 
-UCLASS()
+UCLASS(Abstract, Blueprintable, NotBlueprintType, ClassGroup = "AI", AutoExpandCategories = "Bot", HideCategories = (Rendering, HLOD, Collision, Cooking, Variable, Replication, Input, Actor))
 class HORRORGAME_API ABotSpawner : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	ABotSpawner();
+	ABotSpawner(const FObjectInitializer& ObjectInitializer);
 
 	/* Дата Ассет бота */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bot")
 	FDataRegistryId BotID;
 
 protected:
-	// Called when the game starts or when spawned
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> SceneRoot;
+
 	virtual void BeginPlay() override;
 	void SpawnBot();
 	void OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID);
+	/* Спаун и инициализация бота из дата ассета */
 	UFUNCTION(BlueprintNativeEvent)
 	void InitFromAsset(UPrimaryDataAsset* SourceAsset);
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	/* Возвращает координаты спауна бота в WorldSpace */
+	UFUNCTION(BlueprintNativeEvent)
+	void GetSpawnTransform(FTransform& SpawnTransform);
 };

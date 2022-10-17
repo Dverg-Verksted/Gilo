@@ -7,7 +7,7 @@
 #include "BotDataAssetBase.generated.h"
 
 /**
- * Бот
+ * Настройки бота
  */
 UCLASS()
 class HORRORGAME_API UBotDataAssetBase : public UAutoDiscoveryAsset
@@ -18,8 +18,8 @@ public:
 	UBotDataAssetBase();
 
 	/* Класс бота */
-	UPROPERTY(
-		EditDefaultsOnly, BlueprintReadOnly, Category = "Door", DisplayName = "Класс бота", AssetRegistrySearchable, meta = (ToolTip = "Класс бота", AssetBundles = "classes", MetaClass = "BotBase"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Common", DisplayName = "Класс бота", AssetRegistrySearchable,
+		meta = (ToolTip = "Класс бота", AssetBundles = "classes", AllowedClasses = "BotBase"))
 	TSoftClassPtr<AActor> BotClass;
 
 protected:
