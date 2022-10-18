@@ -7,10 +7,7 @@
 #include "Game/UI/GameBaseUILayer.h"
 #include "Kismet/GameplayStatics.h"
 
-AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
+AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
 
 void AGameHUD::ToggleGameMenu(bool bPauseGame)
 {
@@ -112,7 +109,7 @@ void AGameHUD::DrawHUD()
 
 			if (const auto* HealthComp = Cast<UHealthComponent>(PlayerPawn->GetComponentByClass(UHealthComponent::StaticClass())))
 			{
-				AddFloat(TEXT("Здоровье:"), HealthComp->GetPlayerHealth());
+				AddFloat(TEXT("Здоровье:"), HealthComp->GetHealth());
 			}
 		}
 	}

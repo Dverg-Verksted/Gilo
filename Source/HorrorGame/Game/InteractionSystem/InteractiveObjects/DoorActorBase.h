@@ -106,6 +106,14 @@ protected:
 	UFUNCTION()
 	void OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID);
 
+	/* Событие вызывается при начале быстрого открытия двери */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDoorQuickOpen();
+
+	/* Событие вызывается при начале быстрого закрытия двери */
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDoorQuickClose();
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
@@ -156,5 +164,5 @@ private:
 	/* Остановить автоматическое открытие/закрытие двери */
 	void StopMoving();
 	/* Вычисляет угол, максимально удаленный от текущего угла поворота двери */
-	float CalculateOpenAngle() const;
+	float CalculateOpenAngle(bool& bOpen) const;
 };
