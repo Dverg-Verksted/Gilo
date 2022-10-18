@@ -7,28 +7,35 @@
 #include "DataRegistryId.h"
 #include "BotSpawner.generated.h"
 
-UCLASS()
+/* Класс отвечает за спаун ботов */
+UCLASS(Abstract, Blueprintable, NotBlueprintType, ClassGroup = "AI", AutoExpandCategories = "Bot", HideCategories = (Rendering, HLOD, Collision, Cooking, Variable, Replication, Input, Actor))
 class HORRORGAME_API ABotSpawner : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
-	ABotSpawner();
+	ABotSpawner(const FObjectInitializer& ObjectInitializer);
 
 	/* Дата Ассет бота */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bot")
 	FDataRegistryId BotID;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	void SpawnBot();
-	void OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID);
-	UFUNCTION(BlueprintNativeEvent)
-	void InitFromAsset(UPrimaryDataAsset* SourceAsset);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> SceneRoot;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	/* Спаун и инициализация бота из дата ассета */
+	UFUNCTION(BlueprintNativeEvent, Category = "AI")
+	void InitFromAsset(const UPrimaryDataAsset* SourceAsset);
+	
+	/* Возвращает координаты спауна бота в WorldSpace */
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "AI")
+	void GetSpawnTransform(FTransform& SpawnTransform);
+
+	virtual void BeginPlay() override;
+private:
+	/* Спаун бота */
+	void SpawnBot();
+	/* Обработчик завершения загрузки дата ассета бота */
+	void OnBotAssetLoaded(FPrimaryAssetId LoadedAssetID);
 };

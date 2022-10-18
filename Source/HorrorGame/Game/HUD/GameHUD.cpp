@@ -7,9 +7,12 @@
 #include "Game/UI/GameBaseUILayer.h"
 #include "Kismet/GameplayStatics.h"
 
-AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
+AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
 
-void AGameHUD::ToggleGameMenu()
+void AGameHUD::ToggleGameMenu(bool bPauseGame)
 {
 	ensure(BaseUILayer);
 	if (!BaseUILayer) return;
@@ -38,7 +41,10 @@ void AGameHUD::ToggleGameMenu()
 		InputMode.SetWidgetToFocus(BaseUILayer->TakeWidget());
 		Controller->SetInputMode(InputMode);
 		Controller->SetShowMouseCursor(true);
-		UGameplayStatics::SetGamePaused(this, true);
+		if (bPauseGame)
+		{
+			UGameplayStatics::SetGamePaused(this, true);
+		}
 	}
 }
 

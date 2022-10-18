@@ -1,4 +1,4 @@
-// It is owned by the company Dverg Verksted.
+﻿// It is owned by the company Dverg Verksted.
 
 #pragma once
 
@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BotBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract)
 class HORRORGAME_API ABotBase : public ACharacter
 {
 	GENERATED_BODY()
@@ -32,6 +32,10 @@ protected:
 	float CurrentWalkSpeed;
 
 public:
+	/* Инициализация бота из дата ассета */
+	UFUNCTION(BlueprintNativeEvent, Category = "AI")
+	void InitFromAsset(const class UBotDataAssetBase* BotAsset);
+
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

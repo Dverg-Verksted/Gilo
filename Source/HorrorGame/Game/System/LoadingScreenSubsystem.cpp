@@ -77,7 +77,8 @@ ETickableTickType ULoadingScreenSubsystem::GetTickableTickType() const
 
 bool ULoadingScreenSubsystem::IsTickable() const
 {
-	return !HasAnyFlags(RF_ClassDefaultObject);
+	const bool bCanTick = !HasAnyFlags(RF_ClassDefaultObject);
+	return bCanTick;
 }
 
 TStatId ULoadingScreenSubsystem::GetStatId() const
@@ -87,7 +88,8 @@ TStatId ULoadingScreenSubsystem::GetStatId() const
 
 UWorld* ULoadingScreenSubsystem::GetTickableGameObjectWorld() const
 {
-	return GetGameInstance()->GetWorld();
+	auto* World = GetGameInstance()->GetWorld();
+	return World;
 }
 
 bool ULoadingScreenSubsystem::CheckForAnyNeedToShowLoadingScreen()
@@ -165,6 +167,7 @@ bool ULoadingScreenSubsystem::ShouldShowLoadingScreen()
 	{
 		// Still need to show it
 		TimeLoadingScreenLastDismissed = -1.0;
+		UE_LOG(LogLoadingScreen, Log, TEXT("%s"), *DebugReasonForShowingOrHidingLoadingScreen);
 	}
 	else
 	{

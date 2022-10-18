@@ -214,6 +214,10 @@
 		{
 			"Name": "Metasound",
 			"Enabled": true
+		},
+		{
+			"Name": "ArchVisCharacter",
+			"Enabled": false
 		}
 	],
 	"TargetPlatforms": [
