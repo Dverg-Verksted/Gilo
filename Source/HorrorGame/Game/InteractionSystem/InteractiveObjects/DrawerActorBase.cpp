@@ -48,11 +48,14 @@ void ADrawerActorBase::DrawerDragActionHandler(const FInputActionValue& ActionVa
 
 void ADrawerActorBase::GrabObjectTriggeredHandler(const FInputActionValue& ActionValue)
 {
+	if (bDragged) return;
 	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
 	{
 		if (Comp->GetLockedActor() != this)
 		{
+			StopMoving();
 			Comp->LockOnTarget(this);
+			bDragged = true;
 		}
 	}
 }
@@ -63,6 +66,12 @@ void ADrawerActorBase::GrabObjectCompletedHandler(const FInputActionValue& Actio
 	{
 		Comp->ClearTargetLock();
 	}
+	bDragged = false;
+}
+
+void ADrawerActorBase::QuickOpenCloseActionHandler(const FInputActionValue& InputActionValue)
+{
+	ToggleQuickOpenClose();
 }
 
 void ADrawerActorBase::OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID)
@@ -123,12 +132,17 @@ void ADrawerActorBase::Tick(float DeltaTime)
 	}
 }
 
-void ADrawerActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+void ADrawerActorBase::ToggleQuickOpenClose()
 {
 	if (bDragged) return;
 	if (bMoving) StopMoving();
 	const float TargetDepth = CalculateDepth();
 	StartMoving(TargetDepth);
+}
+
+void ADrawerActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+{
+	ToggleQuickOpenClose();
 }
 
 void ADrawerActorBase::InitFromAsset_Implementation(UPrimaryDataAsset* SourceAsset)
@@ -161,6 +175,7 @@ void ADrawerActorBase::OnHoverBegin_Implementation(APlayerController* PlayerCont
 			EIC->BindAction(GrabObjectAction, ETriggerEvent::Triggered, this, &ADrawerActorBase::GrabObjectTriggeredHandler);
 			EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADrawerActorBase::GrabObjectCompletedHandler);
 			EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADrawerActorBase::GrabObjectCompletedHandler);
+			EIC->BindAction(QuickOpenCloseAction, ETriggerEvent::Triggered, this, &ADrawerActorBase::QuickOpenCloseActionHandler);
 			bInputBinded = true;
 		}
 	}

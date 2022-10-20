@@ -13,8 +13,7 @@
 
 #pragma optimize("", off)
 
-ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -75,8 +74,8 @@ void ADoorActorBase::GrabObjectCompletedHandler(const FInputActionValue& ActionV
 	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
 	{
 		Comp->ClearTargetLock();
-		bDragged = false;
 	}
+	bDragged = false;
 }
 
 void ADoorActorBase::OnConstruction(const FTransform& Transform)
