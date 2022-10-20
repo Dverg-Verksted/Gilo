@@ -75,6 +75,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabObjectAction;
 
+	/* Действие быстрого открытия/закрытия двери */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickOpenCloseAction;
+
 	/* Контекст действий с дверью */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DoorInputContext;
@@ -102,6 +106,9 @@ protected:
 
 	UFUNCTION()
 	void DoorDragActionHandler(const FInputActionValue& ActionValue);
+
+	UFUNCTION()
+	void QuickOpenCloseActionHandler(const FInputActionValue& InputActionValue);
 
 	UFUNCTION()
 	void OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID);
@@ -165,4 +172,5 @@ private:
 	void StopMoving();
 	/* Вычисляет угол, максимально удаленный от текущего угла поворота двери */
 	float CalculateOpenAngle(bool& bOpen) const;
+	void QuickToggleDoor();
 };

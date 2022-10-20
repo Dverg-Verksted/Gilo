@@ -13,7 +13,8 @@
 
 #pragma optimize("", off)
 
-ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -57,11 +58,14 @@ void ADoorActorBase::ReloadDoorAsset()
 
 void ADoorActorBase::GrabObjectTriggeredHandler(const FInputActionValue& ActionValue)
 {
+	if (bDragged) return;
 	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
 	{
 		if (Comp->GetLockedActor() != this)
 		{
+			StopMoving();
 			Comp->LockOnTarget(this);
+			bDragged = true;
 		}
 	}
 }
@@ -71,6 +75,7 @@ void ADoorActorBase::GrabObjectCompletedHandler(const FInputActionValue& ActionV
 	if (auto* Comp = UInteractionComponent::Get(DragPlayerController))
 	{
 		Comp->ClearTargetLock();
+		bDragged = false;
 	}
 }
 
@@ -118,6 +123,7 @@ void ADoorActorBase::OnHoverBegin_Implementation(APlayerController* PlayerContro
 				EIC->BindAction(GrabObjectAction, ETriggerEvent::Completed, this, &ADoorActorBase::GrabObjectCompletedHandler);
 				EIC->BindAction(GrabObjectAction, ETriggerEvent::Canceled, this, &ADoorActorBase::GrabObjectCompletedHandler);
 			}
+			EIC->BindAction(QuickOpenCloseAction, ETriggerEvent::Triggered, this, &ADoorActorBase::QuickOpenCloseActionHandler);
 			bInputBinded = true;
 		}
 	}
@@ -226,7 +232,7 @@ float ADoorActorBase::CalculateOpenAngle(bool& bOpen) const
 	return Angle;
 }
 
-void ADoorActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+void ADoorActorBase::QuickToggleDoor()
 {
 	if (bDragged) return;
 	if (bMoving) StopMoving();
@@ -243,6 +249,11 @@ void ADoorActorBase::OnUseObject_Implementation(APlayerController* PlayerControl
 	}
 }
 
+void ADoorActorBase::OnUseObject_Implementation(APlayerController* PlayerController)
+{
+	QuickToggleDoor();
+}
+
 void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
 {
 	if (!DragPlayerController) return;
@@ -252,6 +263,11 @@ void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
 	Angle = FMath::ClampAngle(Angle, MinDoorAngle, MaxDoorAngle);
 	const FRotator NewRotation = FRotator(0.0f, Angle, 0.0f);
 	DoorRootComponent->SetRelativeRotation(NewRotation, true);
+}
+
+void ADoorActorBase::QuickOpenCloseActionHandler(const FInputActionValue& InputActionValue)
+{
+	QuickToggleDoor();
 }
 
 void ADoorActorBase::OnDoorAssetLoaded(FPrimaryAssetId LoadedAssetID)
