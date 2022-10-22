@@ -7,12 +7,19 @@
 UWalkCameraShakeComponent::UWalkCameraShakeComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	CurrentCameraShake = nullptr;
+	PrimaryComponentTick.bStartWithTickEnabled = true;
 }
 
 void UWalkCameraShakeComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	StartCameraShakes();
+}
+
+void UWalkCameraShakeComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	StopCameraShakes();
 }
 
 void UWalkCameraShakeComponent::ToggleMoveAction(bool bMoveActionEnabled)
@@ -26,85 +33,80 @@ void UWalkCameraShakeComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	if (!IsActive()) return;
 
+	bool bFalling = false;
 	const auto* Pawn = Cast<ACharacter>(GetOwner());
 	if (Pawn && Pawn->GetCharacterMovement()->IsFalling())
 	{
-		if (bCameraShakeActive)
-		{
-			StopCameraShake();
-		}
-		return;
+		bFalling = true;
 	}
 
 	const bool bMoving = bMoveInputActive;
-
-	if (!bMoving && (CameraMoveState != Idle || !bCameraShakeActive))
+	if (!bMoving && !bFalling)
 	{
-		CameraMoveState = Idle;
-		StartCameraShake(IdleCameraShakeClass);
+		CameraMoveState = ECameraMoveState::Idle;
 	}
-	else if (bMoving && !bSprinting && CameraMoveState != Walk)
+	else if (bMoving && !bSprinting && CameraMoveState != ECameraMoveState::Walk)
 	{
-		CameraMoveState = Walk;
-		StartCameraShake(WalkCameraShakeClass);
+		CameraMoveState = ECameraMoveState::Walk;
 	}
-	else if (bMoving && bSprinting && CameraMoveState != Run)
+	else if (bMoving && bSprinting && CameraMoveState != ECameraMoveState::Run)
 	{
-		CameraMoveState = Run;
-		StartCameraShake(RunCameraShakeClass);
+		CameraMoveState = ECameraMoveState::Run;
 	}
 
 	// Сглаживание переходов между CameraShake
-	if (OldCameraShake)
+	for (const auto& Pair : CameraShakes)
 	{
-		const float NewScale = FMath::FInterpConstantTo(OldCameraShake->ShakeScale, 0.0f, DeltaTime, ShakeOutSpeed);
-		if (OldCameraShake->ShakeScale > 0.01f)
+		if (Pair.Value && Pair.Key != CameraMoveState)
 		{
-			OldCameraShake->ShakeScale = NewScale;
+			const float NewScale = FMath::FInterpConstantTo(Pair.Value->ShakeScale, 0.0f, DeltaTime, ShakeOutSpeed);
+			if (Pair.Value->ShakeScale > 0.0f)
+			{
+				Pair.Value->ShakeScale = NewScale;
+			}
 		}
 		else
 		{
-			OldCameraShake->StopShake(true);
-			OldCameraShake = nullptr;
-		}
-	}
-	if (CurrentCameraShake)
-	{
-		if (CurrentCameraShake->ShakeScale < 1.0f)
-		{
-			const float NewScale = FMath::FInterpConstantTo(CurrentCameraShake->ShakeScale, 1.0f, DeltaTime, ShakeInSpeed);
-			CurrentCameraShake->ShakeScale = NewScale;
+			Pair.Value->ShakeScale = FMath::FInterpConstantTo(Pair.Value->ShakeScale, 1.0f, DeltaTime, ShakeInSpeed);
 		}
 	}
 }
 
-void UWalkCameraShakeComponent::StartCameraShake(TSubclassOf<UCameraShakeBase> CameraShakeClass)
+void UWalkCameraShakeComponent::StartCameraShakes()
 {
 	const APlayerController* PC = GetPlayerController();
 	ensure(PC);
+	if (!PC) return;
 
-	StopCameraShake();
-
-	if (!CameraShakeClass)
+	UCameraShakeBase* Shake = nullptr;
+	if (IdleCameraShakeClass)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Не задан класс CameraShake"));
-		return;
+		Shake = PC->PlayerCameraManager->StartCameraShake(IdleCameraShakeClass, 0.1f);
+		CameraShakes.Add(ECameraMoveState::Idle, Shake);
 	}
-
-	CurrentCameraShake = PC->PlayerCameraManager->StartCameraShake(CameraShakeClass, 0.1f);
-	bCameraShakeActive = true;
+	if (WalkCameraShakeClass)
+	{
+		Shake = PC->PlayerCameraManager->StartCameraShake(WalkCameraShakeClass, 0.1f);
+		CameraShakes.Add(ECameraMoveState::Walk, Shake);
+	}
+	if (RunCameraShakeClass)
+	{
+		Shake = PC->PlayerCameraManager->StartCameraShake(RunCameraShakeClass, 0.1f);
+		CameraShakes.Add(ECameraMoveState::Run, Shake);
+	}
 }
 
-void UWalkCameraShakeComponent::StopCameraShake()
+void UWalkCameraShakeComponent::StopCameraShakes()
 {
 	const APlayerController* PC = GetPlayerController();
 	ensure(PC);
+	if (!PC) return;
 
-	if (bCameraShakeActive)
+	for (const auto& Pair : CameraShakes)
 	{
-		bCameraShakeActive = false;
-		OldCameraShake = CurrentCameraShake;
+		PC->PlayerCameraManager->StopCameraShake(Pair.Value, true);
 	}
+	CameraShakes.Empty();
 }
 
 APlayerController* UWalkCameraShakeComponent::GetPlayerController() const
