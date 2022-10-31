@@ -27,11 +27,11 @@ public:
 	FOnHealthChangedDelegate OnHealthChanged;
 
 protected:
-	/* Здоровье игрока */
+	/* Текущий уровень здоровья */
 	UPROPERTY()
 	float Health = 100.0f;
 
-	/* Макс. Здоровье игрока */
+	/* Макс. запас здоровья */
 	UPROPERTY()
 	float MaxHealth = 100.0f;
 
@@ -39,28 +39,43 @@ protected:
 	UPROPERTY()
 	float HealthRegenDelay = 7.0f;
 
-	/* Задает здоровье игрока */
+	/* Изменение значения здоровья */
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float InHealth);
 
+	/* TRUE - Если обладатель жив */
+	bool bAlive = true;
+
+	/* Обработчик события урона владельцу компонента */
 	UFUNCTION()
 	virtual void OnOwnerTakeDamage(AActor* DamagedActor, float Damage, const class UDamageType* DamageType, class AController* InstigatedBy, AActor* DamageCauser);
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	/* Обновляет здоровье игрока на заданное значение */
+	/* Обновляет здоровье на заданное значение */
 	virtual void UpdateHealth(float InAmount);
 
 public:
-	/* Возвращает здоровье игрока */
-	UFUNCTION(BlueprintPure, Category = "Player")
-	float GetPlayerHealth() const { return Health; };
+	/* Возвращает текущее здоровье */
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetHealth() const { return Health; };
 
-	/* Возвращает макс. здоровье игрока */
-	UFUNCTION(BlueprintPure, Category = "Player")
-	float GetPlayerMaxHealth() const { return MaxHealth; };
+	/* Возвращает макс. уровень здоровья */
+	UFUNCTION(BlueprintPure, Category = "Health")
+	float GetMaxHealth() const { return MaxHealth; };
+
+	/* Возвращает TRUE - Если обладатель жив */
+	UFUNCTION(BlueprintPure, Category = "Health")
+	bool IsAlive() const { return bAlive; };
+
+	/* Инициализация компонента */
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void Initialize(const float& InMaxHealth, const float& InHealthRegenDelay);
 
 private:
 	/* Таймер восстановления здоровья */
 	FTimerHandle RegenTimerHandle;
+	/* Отвязка от всех событий */
+	void ClearEvents();
+	/* Остановка и очистка таймера регенерации здоровья */
 	void ClearHealthRegenTimer();
 };
