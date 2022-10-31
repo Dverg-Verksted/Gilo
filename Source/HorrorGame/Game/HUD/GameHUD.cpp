@@ -4,13 +4,11 @@
 #include "Game/InteractionSystem/InteractionComponent.h"
 #include "Game/Player/HealthComponent.h"
 #include "Game/Player/PlayerSprintComponent.h"
+#include "Game/Player/WalkCameraShakeComponent.h"
 #include "Game/UI/GameBaseUILayer.h"
 #include "Kismet/GameplayStatics.h"
 
-AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-{
-}
+AGameHUD::AGameHUD(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer) {}
 
 void AGameHUD::ToggleGameMenu(bool bPauseGame)
 {
@@ -112,7 +110,12 @@ void AGameHUD::DrawHUD()
 
 			if (const auto* HealthComp = Cast<UHealthComponent>(PlayerPawn->GetComponentByClass(UHealthComponent::StaticClass())))
 			{
-				AddFloat(TEXT("Здоровье:"), HealthComp->GetPlayerHealth());
+				AddFloat(TEXT("Здоровье:"), HealthComp->GetHealth());
+			}
+
+			if (const auto* CameraShakeComp = Cast<UWalkCameraShakeComponent>(PlayerPawn->GetComponentByClass(UWalkCameraShakeComponent::StaticClass())))
+			{
+				AddText(TEXT("CameraShakeState:"), FText::FromString(*UEnum::GetValueAsString(CameraShakeComp->GetState())));
 			}
 		}
 	}

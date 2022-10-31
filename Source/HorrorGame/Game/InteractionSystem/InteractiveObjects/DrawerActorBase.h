@@ -57,6 +57,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> GrabObjectAction;
 
+	/* Действие быстрого открытия/закрытия ящика */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> QuickOpenCloseAction;
+
 	/* Контекст действий с ящиком */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DrawerInputContext;
@@ -85,6 +89,9 @@ protected:
 
 	UFUNCTION()
 	void GrabObjectCompletedHandler(const FInputActionValue& ActionValue);
+
+	UFUNCTION()
+	void QuickOpenCloseActionHandler(const FInputActionValue& InputActionValue);
 
 	UFUNCTION()
 	void OnDrawerAssetLoaded(FPrimaryAssetId LoadedAssetID);
@@ -128,4 +135,6 @@ private:
 	void StopMoving();
 	/* Вычисляет глубину, максимально удаленную от текущей глубины выдвижения ящика */
 	float CalculateDepth() const;
+	/* Переключение между быстрым открытием и закрытием */
+	void ToggleQuickOpenClose();
 };
