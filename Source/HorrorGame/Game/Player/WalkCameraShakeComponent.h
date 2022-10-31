@@ -8,8 +8,9 @@
 
 /* Состояние камеры зависящее от текущего движения персонажа */
 UENUM()
-enum ECameraMoveState
+enum class ECameraMoveState : uint8
 {
+	NoShake,
 	Idle,
 	Walk,
 	Run
@@ -43,32 +44,19 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
-	/* Запуск CameraShake */
-	void StartCameraShake(TSubclassOf<UCameraShakeBase> CameraShakeClass);
-
-	/* Остановка проигрываемого CameraShake */
-	FORCEINLINE void StopCameraShake();
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	/** TRUE - Если поступают команды на движение */
 	bool bMoveInputActive = false;
 
-	/* Признак проигрывания в текущий момент CameraShake */
-	bool bCameraShakeActive = false;
-
-	/* Текущий проигрываемый CameraShake */
 	UPROPERTY()
-	TObjectPtr<UCameraShakeBase> OldCameraShake;
-
-	/* Текущий проигрываемый CameraShake */
-	UPROPERTY()
-	TObjectPtr<UCameraShakeBase> CurrentCameraShake;
+	TMap<ECameraMoveState, UCameraShakeBase*> CameraShakes;
 
 	/* Признак бежим или нет */
 	bool bSprinting = false;
 
 	/* Текущий тип движения камеры */
-	TEnumAsByte<ECameraMoveState> CameraMoveState = Idle;
+	ECameraMoveState CameraMoveState = ECameraMoveState::NoShake;
 
 	/* Возвращает текущий PlayerController */
 	APlayerController* GetPlayerController() const;
@@ -80,5 +68,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "WalkCameraShake")
 	void ToggleMoveAction(bool bMoveActionEnabled);
 
+	/* Возвращает текущее состояние */
+	FORCEINLINE ECameraMoveState GetState() const { return CameraMoveState; }
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void StartCameraShakes();
+	void StopCameraShakes();
 };

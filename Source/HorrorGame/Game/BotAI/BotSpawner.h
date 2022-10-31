@@ -27,12 +27,13 @@ protected:
 	/* Спаун и инициализация бота из дата ассета */
 	UFUNCTION(BlueprintNativeEvent, Category = "AI")
 	void InitFromAsset(const UPrimaryDataAsset* SourceAsset);
-	
+
 	/* Возвращает координаты спауна бота в WorldSpace */
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "AI")
 	void GetSpawnTransform(FTransform& SpawnTransform);
 
 	virtual void BeginPlay() override;
+
 private:
 	/* Спаун бота */
 	void SpawnBot();

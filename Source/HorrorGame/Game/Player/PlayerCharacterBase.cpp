@@ -108,6 +108,7 @@ void APlayerCharacterBase::BeginPlay()
 		{
 			MoveComp->JumpZVelocity = PlayerSettings->JumpVelocity;
 		}
+		HealthComponent->Initialize(PlayerSettings->MaxHealth, PlayerSettings->HealthRegenDelay);
 	}
 	CameraDefaultTransform = MainCameraBoom->GetRelativeTransform();
 }
