@@ -70,8 +70,7 @@ bool UAssetMetaRegistrySource::IsAssetWithNameExists(const FName& Path, const FN
 	const UAssetManager& AssetManager = UAssetManager::Get();
 	const IAssetRegistry& AssetRegistry = AssetManager.GetAssetRegistry();
 	AssetRegistry.EnumerateAllAssets(
-		[CheckName, Path, &Result, &ExistsPath](const FAssetData& AssetData)
-		{
+		[CheckName, Path, &Result, &ExistsPath](const FAssetData& AssetData) {
 			FName AssetName = NAME_None;
 			if (AssetData.GetTagValue(AssetUniqueNameTag, AssetName) && AssetName != NAME_None)
 			{

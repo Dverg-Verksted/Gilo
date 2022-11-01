@@ -4,17 +4,12 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlayerSettings.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "Game/BotAI/AIControllerBase.h"
 #include "Game/GameModes/HorrorGameGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Game/Settings/HorrorSettingsLocal.h"
 #include "Game/System/HorrorAssetManager.h"
-#include "GameFramework/GameModeBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Game/BotAI/BotBase.h"
-#include "Runtime/AIModule/Classes/Perception/AISenseConfig_Sight.h"
 
 #pragma optimize("", off)
 
@@ -60,6 +55,8 @@ APlayerCharacterBase::APlayerCharacterBase(const FObjectInitializer& ObjectIniti
 	PhysicsHandleComponent = ObjectInitializer.CreateDefaultSubobject<UPhysicsHandleComponent>(this, TEXT("PhysicsHandleComponent"));
 	HealthComponent = ObjectInitializer.CreateDefaultSubobject<UHealthComponent>(this, TEXT("HealthComponent"));
 	HealthComponent->OnDeath.AddDynamic(this, &ThisClass::OnPlayerDeathHandler);
+
+	PerceptionStimuliSourceComponent = ObjectInitializer.CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(this, TEXT("PerceptionStimuliSourceComponent"));
 }
 
 void APlayerCharacterBase::OnPlayerDeathHandler()
