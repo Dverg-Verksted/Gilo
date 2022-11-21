@@ -191,7 +191,8 @@ bool ULoadingScreenSubsystem::ShouldShowLoadingScreen()
 			GameViewportClient->bDisableWorldRendering = false;
 
 			DebugReasonForShowingOrHidingLoadingScreen = FString::Printf(TEXT("Keeping loading screen up for an additional %.2f seconds to allow texture streaming"), HoldLoadingScreenAdditionalSecs);
-			bWantToForceShowLoadingScreen = true;
+			//@TODO В билде тик больше не вызывается. Нужно разобраться с этим.
+			//bWantToForceShowLoadingScreen = true;
 		}
 	}
 
@@ -325,10 +326,13 @@ void ULoadingScreenSubsystem::UpdateLoadingScreen()
 {
 	if (ShouldShowLoadingScreen())
 	{
+		UE_LOG(LogLoadingScreen, Log, TEXT("SHOWING LOADING SCREEN..."));
+		UE_LOG(LogLoadingScreen, Log, TEXT("%s"), *DebugReasonForShowingOrHidingLoadingScreen);
 		ShowLoadingScreen();
 	}
 	else
 	{
+		//UE_LOG(LogLoadingScreen, Log, TEXT("HIDING LOADING SCREEN..."));
 		HideLoadingScreen();
 	}
 }
