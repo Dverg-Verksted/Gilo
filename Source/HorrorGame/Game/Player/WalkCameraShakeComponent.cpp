@@ -98,13 +98,12 @@ void UWalkCameraShakeComponent::StartCameraShakes()
 
 void UWalkCameraShakeComponent::StopCameraShakes()
 {
-	const APlayerController* PC = GetPlayerController();
-	ensure(PC);
-	if (!PC) return;
-
-	for (const auto& Pair : CameraShakes)
+	if (const APlayerController* PC = GetPlayerController())
 	{
-		PC->PlayerCameraManager->StopCameraShake(Pair.Value, true);
+		for (const auto& Pair : CameraShakes)
+		{
+			PC->PlayerCameraManager->StopCameraShake(Pair.Value, true);
+		}
 	}
 	CameraShakes.Empty();
 }
