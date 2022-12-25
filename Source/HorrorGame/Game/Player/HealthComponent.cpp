@@ -46,7 +46,7 @@ void UHealthComponent::OnOwnerTakeDamage(AActor* DamagedActor, float Damage, con
 	if (HealthRegenDelay > 0.0f)
 	{
 		FTimerManager& TimerManager = GetWorld()->GetTimerManager();
-		TimerManager.SetTimer(RegenTimerHandle, FTimerDelegate::CreateLambda([&]() { SetHealth(MaxHealth); }), HealthRegenDelay, false, HealthRegenDelay);
+		TimerManager.SetTimer(RegenTimerHandle, FTimerDelegate::CreateUObject(this, &UHealthComponent::SetHealth, MaxHealth), HealthRegenDelay, false, HealthRegenDelay);
 	}
 }
 

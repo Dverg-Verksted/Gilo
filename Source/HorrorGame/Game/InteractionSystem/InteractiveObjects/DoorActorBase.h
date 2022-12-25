@@ -21,10 +21,15 @@ public:
 	ADoorActorBase(const FObjectInitializer& ObjectInitializer);
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnQuickOpenCloseCompleteHandler, float, TargetAngle);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDoorDragHandler, float, Speed, float, Progress);
 
 	/* Событие вызывается по завершении автоматического открытия/закрытия двери */
 	UPROPERTY(BlueprintAssignable)
 	FOnQuickOpenCloseCompleteHandler OnQuickOpenCloseComplete;
+
+	/* Событие вызывается в процессе ручного открытия двери */
+	UPROPERTY(BlueprintAssignable)
+	FOnDoorDragHandler OnDoorDrag;
 
 	/* Дата Ассет текущей двери */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "InteractiveObjects|Door")
