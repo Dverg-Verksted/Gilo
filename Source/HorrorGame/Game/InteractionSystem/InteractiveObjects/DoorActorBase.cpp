@@ -13,7 +13,8 @@
 
 #pragma optimize("", off)
 
-ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+ADoorActorBase::ADoorActorBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = false;
@@ -258,10 +259,13 @@ void ADoorActorBase::DoorDragActionHandler(const FInputActionValue& ActionValue)
 	if (!DragPlayerController) return;
 
 	float Angle = DoorRootComponent->GetRelativeRotation().Yaw;
-	Angle += ActionValue.Get<float>() * DragMagnitude;
+	const float RotateAmount = ActionValue.Get<float>();
+	Angle += RotateAmount * DragMagnitude;
 	Angle = FMath::ClampAngle(Angle, MinDoorAngle, MaxDoorAngle);
 	const FRotator NewRotation = FRotator(0.0f, Angle, 0.0f);
 	DoorRootComponent->SetRelativeRotation(NewRotation, true);
+	const float Progress = FMath::GetMappedRangeValueClamped(FVector2d(MinDoorAngle, MaxDoorAngle), FVector2d(0.0f, 1.0f), Angle);;
+	OnDoorDrag.Broadcast(RotateAmount, Progress);
 }
 
 void ADoorActorBase::QuickOpenCloseActionHandler(const FInputActionValue& InputActionValue)
